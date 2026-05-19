@@ -1,0 +1,43 @@
+@use "../../node_modules/bootstrap/scss/bootstrap.scss" as bootstrap;
+@use "./bootstrap-overrides.scss" as bootstrapOverrides;
+@use "./variables.scss" as variables;
+@use "./Login.scss" as Login;
+@use "./PageHeader.scss" as PageHeader;
+@use "./Sidebar.scss" as Sidebar;
+@use "./TopNavigation.scss" as TopNavigation;
+@use "./Loader.scss" as Loader; 
+
+label {
+  font-weight: bold;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #eef2f7;
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.app-container {
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+.app-content {
+  margin-right: 0;
+  flex: 1;
+}
+
+.app-content.open {
+  margin-right: 250px;
+  transform: translateX(250px);
+  width: calc(100% - 250px); /* Adjust to match your sidebar width */
+}

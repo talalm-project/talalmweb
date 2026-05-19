@@ -1,0 +1,212 @@
+@import "./variables";
+
+.top-navigation {
+  position: sticky;
+  top: 0;
+  background: #64748b;
+  z-index: 110;
+  padding: 0.7rem 0 0.6rem;
+  color: #f8fafc;
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.12);
+}
+
+.top-navigation-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.top-navigation-search-shell {
+  position: relative;
+  flex: 1 1 360px;
+  max-width: 640px;
+}
+
+.top-navigation-search {
+  position: relative;
+}
+
+.top-navigation-search-icon {
+  position: absolute;
+  top: 50%;
+  left: 0.9rem;
+  transform: translateY(-50%);
+  color: rgba(248, 250, 252, 0.78);
+}
+
+.top-navigation-search .form-control {
+  min-height: 40px;
+  padding-left: 2.4rem;
+  border-radius: 999px;
+  border: 1px solid rgba(248, 250, 252, 0.28);
+  background: rgba(255, 255, 255, 0.16);
+  color: #f8fafc;
+  box-shadow: none;
+}
+
+.top-navigation-search .form-control::placeholder {
+  color: rgba(248, 250, 252, 0.72);
+}
+
+.top-navigation-search .form-control:focus {
+  background: rgba(255, 255, 255, 0.22);
+  color: #f8fafc;
+  border-color: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 0 0 0.15rem rgba(255, 255, 255, 0.14);
+}
+
+.top-navigation-search-results {
+  position: absolute;
+  top: calc(100% + 0.45rem);
+  left: 0;
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(248, 250, 252, 0.18);
+  background: #5f6f86;
+}
+
+.top-navigation-service-result {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem;
+  padding: 0.8rem 0.95rem;
+  border: 0;
+  background: transparent;
+  color: #f8fafc;
+  text-align: left;
+  transition: background 0.2s ease;
+}
+
+.top-navigation-service-result:hover,
+.top-navigation-service-result.active {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.top-navigation-service-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.top-navigation-service-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.top-navigation-service-description {
+  font-size: 0.78rem;
+  color: rgba(248, 250, 252, 0.82);
+}
+
+.top-navigation-star {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  color: rgba(248, 250, 252, 0.58);
+  transition: all 0.2s ease;
+}
+
+.top-navigation-star:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.top-navigation-star.pinned {
+  color: #fbbf24;
+}
+
+.top-navigation-empty-state {
+  padding: 0.9rem 1rem;
+  color: rgba(248, 250, 252, 0.82);
+  font-size: 0.82rem;
+}
+
+.top-navigation-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.8rem;
+  margin-left: auto;
+}
+
+.top-navigation-user {
+  line-height: 1.1;
+}
+
+.top-navigation-user-role {
+  color: rgba(255, 255, 255, 0.96);
+  font-weight: 600;
+}
+
+.top-navigation-pinned-panel {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.55rem;
+  padding-top: 0.55rem;
+  border-top: 1px solid rgba(226, 232, 240, 0.14);
+  flex-wrap: wrap;
+}
+
+.top-navigation-pinned-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(248, 250, 252, 0.82);
+}
+
+.top-navigation-pinned-list {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.top-navigation-pinned-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.38rem 0.45rem 0.38rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid rgba(248, 250, 252, 0.18);
+  background: rgba(255, 255, 255, 0.12);
+  color: #f8fafc;
+  transition: all 0.2s ease;
+}
+
+.top-navigation-pinned-item:hover,
+.top-navigation-pinned-item.active {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(248, 250, 252, 0.28);
+}
+
+.top-navigation-pinned-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+@media (max-width: $small-screen-width) {
+  .top-navigation-search-shell {
+    max-width: none;
+    width: 100%;
+  }
+
+  .top-navigation-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+}

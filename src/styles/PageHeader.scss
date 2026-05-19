@@ -1,0 +1,87 @@
+@import "./variables";
+
+.app-page-shell {
+  padding-top: 0.85rem;
+  padding-bottom: 1.5rem;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.15rem 0 0.75rem;
+  margin-bottom: 0.1rem;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.page-header-main {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.page-header-copy {
+  min-width: 0;
+  flex: 0 0 auto;
+}
+
+.page-header-eyebrow {
+  margin: 0 0 0.12rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.page-header-title {
+  margin: 0;
+  font-size: 1.2rem;
+  line-height: 1.1;
+  font-weight: 600;
+  color: #0f172a;
+  white-space: nowrap;
+}
+
+.page-header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.page-header-actions .btn {
+  min-height: 32px;
+  padding: 0.28rem 0.72rem;
+}
+
+@media (max-width: $small-screen-width) {
+  .app-page-shell {
+    padding-top: 0.7rem;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.55rem;
+  }
+
+  .page-header-main {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+  }
+
+  .page-header-title {
+    font-size: 1.05rem;
+    white-space: normal;
+  }
+
+  .page-header-actions {
+    justify-content: flex-start;
+  }
+}
