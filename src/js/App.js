@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Login from "./Login";
-import { AUTH_STATE_CHANGE_EVENT, isLoggedIn } from "./services/AuthService";
+import { AUTH_STATE_CHANGE_EVENT, getCurrentUser, isLoggedIn } from "./services/AuthService";
 import Sidebar from "./Sidebar";
 import TopNavigation from "./TopNavigation";
 import {
@@ -10,6 +10,7 @@ import {
 } from "react-router-dom";
 
 import Dashboard from "./Dashboard";
+import Doctor from "./Doctor";
 import Home from "./Home";
 import Settings from "./Settings";
 import UsersIndex from "./users/Index";
@@ -33,6 +34,16 @@ const PublicApp = () => {
       />
     </Routes>
   );
+};
+
+const AdminRoute = ({ children }) => {
+  const currentUser = getCurrentUser();
+
+  if (currentUser?.role !== "admin") {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return children;
 };
 
 const AuthenticatedApp = () => {
@@ -60,20 +71,44 @@ const AuthenticatedApp = () => {
               element={<Settings />}
             />
             <Route
+              path="/doctor"
+              element={(
+                <AdminRoute>
+                  <Doctor />
+                </AdminRoute>
+              )}
+            />
+            <Route
               path="/users"
-              element={<UsersIndex />}
+              element={(
+                <AdminRoute>
+                  <UsersIndex />
+                </AdminRoute>
+              )}
             />
             <Route
               path="/users/new"
-              element={<UsersForm />}
+              element={(
+                <AdminRoute>
+                  <UsersForm />
+                </AdminRoute>
+              )}
             />
             <Route
               path="/users/:id"
-              element={<UsersShow />}
+              element={(
+                <AdminRoute>
+                  <UsersShow />
+                </AdminRoute>
+              )}
             />
             <Route
               path="/users/:id/edit"
-              element={<UsersForm />}
+              element={(
+                <AdminRoute>
+                  <UsersForm />
+                </AdminRoute>
+              )}
             />
             <Route
               path="*"

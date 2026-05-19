@@ -1,6 +1,6 @@
-# Admin Panel
+# TalaLM Web
 
-A ReactJS based web client for admin functions. Used to bootstrap initial projects to have a default layout.
+The web frontend for TalaLM
 
 ## Tech Stack
 

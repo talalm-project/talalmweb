@@ -1,6 +1,7 @@
 import {
   faDashboard,
   faGears,
+  faStethoscope,
   faUsers
 } from "@fortawesome/free-solid-svg-icons";
 
@@ -23,6 +24,16 @@ export const navigationServices = [
     section: "admin",
     adminOnly: true,
     keywords: ["accounts", "members", "roles", "access"]
+  },
+  {
+    id: "doctor",
+    label: "Doctor",
+    description: "Review sanitized backend configuration and environment wiring.",
+    path: "/doctor",
+    icon: faStethoscope,
+    section: "admin",
+    adminOnly: true,
+    keywords: ["system", "configuration", "environment", "storage", "database"]
   },
   {
     id: "settings",
