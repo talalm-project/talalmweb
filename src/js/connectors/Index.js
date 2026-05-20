@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faFilter, faPlus, faRotateLeft, faSearch, faServer } from "@fortawesome/free-solid-svg-icons";
+import { faEye, faFilter, faPlus, faRotateLeft, faSearch, faServer } from "@fortawesome/free-solid-svg-icons";
 import AdminContent from "../commons/AdminContent";
 import Loader from "../commons/Loader";
 import PageHeader from "../commons/PageHeader";
@@ -175,6 +175,7 @@ const ConnectorsIndex = () => {
                   <tr>
                     <th>Name</th>
                     <th>Connection Type</th>
+                    <th className="text-end">Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -185,18 +186,22 @@ const ConnectorsIndex = () => {
                           <td className="fw-semibold">
                             <span className="d-inline-flex align-items-center gap-2">
                               <FontAwesomeIcon className="text-muted" icon={faServer} />
-                              <Link to={`/connectors/${connector.id}/edit`}>
-                                {connector.name}
-                              </Link>
+                              <span>{connector.name}</span>
                             </span>
                           </td>
                           <td>{formatConnectionType(connector.connection_type)}</td>
+                          <td className="text-end">
+                            <Link className="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-2" to={`/connectors/${connector.id}`}>
+                              <FontAwesomeIcon icon={faEye} />
+                              <span>View</span>
+                            </Link>
+                          </td>
                         </tr>
                       );
                     })
                   ) : (
                     <tr>
-                      <td className="text-center text-muted py-4" colSpan="2">
+                      <td className="text-center text-muted py-4" colSpan="3">
                         No connectors found.
                       </td>
                     </tr>

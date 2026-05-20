@@ -57,6 +57,14 @@ export default Dashboard;
 - Feature-specific styles can be added as separate SCSS files and imported into `src/styles/index.scss`.
 - Keep the visual language consistent with the existing app: simple admin UI, cards, tables, badges, spacing utilities, FontAwesome icons.
 
+### Resource Page Actions
+
+- Index/list tables for resources should include a right-aligned `Action` column.
+- The standard detail navigation action in index/list tables is a small outline primary `View` button with the FontAwesome eye icon, matching `src/js/users/Index.js`.
+- Do not make the resource name itself the primary navigation affordance when an `Action` column is present; keep names as readable text and put navigation in the `View` button.
+- Page-level actions such as `New`, `Back`, `Edit`, `Delete`, or other primary commands belong in the `PageHeader` `actions` prop so they render to the right of the page title.
+- Avoid putting page-level navigation/actions in `AdminContent.headerActions` when the page already has a `PageHeader`; reserve panel header actions for actions scoped only to that panel.
+
 ### Icons
 
 - FontAwesome is the icon library used by this project.

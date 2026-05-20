@@ -16,6 +16,7 @@ import LocalModelsIndex from "./LocalModelsIndex";
 import Settings from "./Settings";
 import ConnectorsForm from "./connectors/Form";
 import ConnectorsIndex from "./connectors/Index";
+import ConnectorsShow from "./connectors/Show";
 import UsersIndex from "./users/Index";
 import UsersShow from "./users/Show";
 import UsersForm from "./users/Form";
@@ -84,6 +85,10 @@ const AuthenticatedApp = () => {
             <Route
               path="/connectors/:id/edit"
               element={<ConnectorsForm />}
+            />
+            <Route
+              path="/connectors/:id"
+              element={<ConnectorsShow />}
             />
             <Route
               path="/doctor"
