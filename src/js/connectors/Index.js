@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faFilter, faRotateLeft, faSearch, faServer } from "@fortawesome/free-solid-svg-icons";
+import { faFilter, faPlus, faRotateLeft, faSearch, faServer } from "@fortawesome/free-solid-svg-icons";
 import AdminContent from "../commons/AdminContent";
 import Loader from "../commons/Loader";
 import PageHeader from "../commons/PageHeader";
@@ -96,6 +96,12 @@ const ConnectorsIndex = () => {
       <PageHeader
         eyebrow="Models"
         title="Connectors"
+        actions={[
+          <Link className="btn btn-primary d-inline-flex align-items-center gap-2" key="new-connector" to="/connectors/new">
+            <FontAwesomeIcon icon={faPlus} />
+            <span>New Connector</span>
+          </Link>
+        ]}
       />
 
       <AdminContent title="Connector Directory">
@@ -179,7 +185,9 @@ const ConnectorsIndex = () => {
                           <td className="fw-semibold">
                             <span className="d-inline-flex align-items-center gap-2">
                               <FontAwesomeIcon className="text-muted" icon={faServer} />
-                              <span>{connector.name}</span>
+                              <Link to={`/connectors/${connector.id}/edit`}>
+                                {connector.name}
+                              </Link>
                             </span>
                           </td>
                           <td>{formatConnectionType(connector.connection_type)}</td>
