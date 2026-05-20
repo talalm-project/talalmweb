@@ -17,6 +17,7 @@ const CONNECTION_TYPES = [
 
 const ConnectorsForm = () => {
   const [formValues, setFormValues] = useState({
+    code: "",
     name: "",
     connection_type: "local",
     local_file_path: "",
@@ -25,6 +26,7 @@ const ConnectorsForm = () => {
   });
   const [localModels, setLocalModels] = useState([]);
   const [selectedLocalModelPath, setSelectedLocalModelPath] = useState("");
+  const [originalConnectionType, setOriginalConnectionType] = useState(null);
   const [showApiKey, setShowApiKey] = useState(false);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
@@ -35,6 +37,7 @@ const ConnectorsForm = () => {
   const isEditing = Boolean(id);
   const isLocal = formValues.connection_type === "local";
   const isOpenAi = formValues.connection_type === "open-ai";
+  const apiKeyRequired = isOpenAi && (!isEditing || originalConnectionType !== "open-ai");
 
   const updateFormValue = (key, value) => {
     setFormValues((currentValues) => {
@@ -90,9 +93,11 @@ const ConnectorsForm = () => {
         }
 
         const connector = connectorResponse.data;
+        setOriginalConnectionType(connector.connection_type || "local");
         setFormValues((currentValues) => {
           return {
             ...currentValues,
+            code: connector.code || "",
             name: connector.name || "",
             connection_type: connector.connection_type || "local",
             local_file_path: connector.local_file_path || "",
@@ -142,6 +147,7 @@ const ConnectorsForm = () => {
     setPageError("");
 
     const payload = {
+      code: formValues.code,
       name: formValues.name,
       connection_type: formValues.connection_type,
       data: formValues.data || {}
@@ -217,6 +223,19 @@ const ConnectorsForm = () => {
                 </div>
               </div>
             ) : null}
+
+            <div className="col-12">
+              <label className="form-label">Code</label>
+              <input
+                className={getInputClassName(errors, "code")}
+                disabled={isLoading}
+                value={formValues.code}
+                onChange={(event) => {
+                  updateFormValue("code", event.target.value);
+                }}
+              />
+              {renderInputErrors(errors, "code")}
+            </div>
 
             <div className="col-12">
               <label className="form-label">Connection Type</label>
@@ -308,6 +327,7 @@ const ConnectorsForm = () => {
                     <input
                       className={getInputClassName(errors, "api_key")}
                       disabled={isLoading}
+                      required={apiKeyRequired}
                       type={showApiKey ? "text" : "password"}
                       value={formValues.api_key}
                       onChange={(event) => {
@@ -325,7 +345,7 @@ const ConnectorsForm = () => {
                       <FontAwesomeIcon icon={showApiKey ? faEyeSlash : faEye} />
                     </button>
                   </div>
-                  {isEditing ? (
+                  {isEditing && originalConnectionType === "open-ai" ? (
                     <div className="form-text">
                       Leave blank to keep the existing API key.
                     </div>
