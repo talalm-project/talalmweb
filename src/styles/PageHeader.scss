@@ -1,8 +1,12 @@
 @import "./variables";
 
 .app-page-shell {
-  padding-top: 0.85rem;
-  padding-bottom: 1.5rem;
+  width: 100%;
+  max-width: none;
+  margin-right: 0;
+  margin-left: 0;
+  padding-top: 1.25rem;
+  padding-bottom: 2rem;
 }
 
 .page-header {
@@ -10,9 +14,9 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.15rem 0 0.75rem;
-  margin-bottom: 0.1rem;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  padding: 0 0 1rem;
+  margin-bottom: 0;
+  border-bottom: 1px solid $talalm-border;
 }
 
 .page-header-main {
@@ -25,7 +29,7 @@
 
 .page-header-copy {
   min-width: 0;
-  flex: 0 0 auto;
+  flex: 1 1 auto;
 }
 
 .page-header-eyebrow {
@@ -35,15 +39,17 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #64748b;
+  color: $talalm-text-muted;
 }
 
 .page-header-title {
   margin: 0;
-  font-size: 1.2rem;
+  font-family: $font-heading;
+  font-size: 1.7rem;
   line-height: 1.1;
-  font-weight: 600;
-  color: #0f172a;
-  white-space: nowrap;
+  font-weight: 700;
+  color: $talalm-text-strong;
+  overflow-wrap: anywhere;
 }
 
 .page-header-actions {
@@ -61,6 +67,7 @@
 
 @media (max-width: $small-screen-width) {
   .app-page-shell {
+    max-width: none;
     padding-top: 0.7rem;
   }
 

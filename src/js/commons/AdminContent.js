@@ -3,7 +3,7 @@ import React from "react";
 export default AdminContent = ({ children, title="", headerActions=[], footer, ...props }) => {
   return (
     <React.Fragment>
-      <div className="card shadow mb-4">
+      <div className="card talalm-panel mb-4">
         <div className="card-header py-2">
           <div className="d-flex justify-content-between align-items-center">
             <div className="fw-bold">

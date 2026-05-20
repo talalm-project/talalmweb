@@ -1,4 +1,22 @@
+@import "./variables";
+
+.auth-screen {
+  min-height: 100vh;
+  background: $talalm-bg;
+  color: $talalm-text;
+}
+
 .login-form {
   max-width: 400px;
   width: 100%;
+}
+
+.login-form .card-body {
+  padding: 2rem;
+}
+
+.login-title {
+  color: $talalm-text-strong;
+  font-family: $font-heading;
+  font-weight: 700;
 }

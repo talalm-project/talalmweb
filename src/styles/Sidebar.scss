@@ -20,8 +20,9 @@
   height: 100%;
   width: $sidebar-active-width;
   background: $dark-purple;
+  border-right: 1px solid $talalm-border;
   z-index: 100;
-  transition: all 0.5s ease;
+  transition: width 0.3s ease;
 }
 
 .sidebar a {
@@ -43,9 +44,10 @@
 .sidebar .logo-details {
   height: 60px;
   width: 100%;
-  padding-top: 20px;
+  padding-top: 0;
   display: flex;
   align-items: center;
+  border-bottom: 1px solid $talalm-border;
 }
 
 .sidebar .logo-details i {
@@ -61,7 +63,9 @@
   margin-left: -15px;
   font-size: $logo-text-size;
   color: $nav-primary-text-color;
-  font-weight: 600;
+  font-family: $font-heading;
+  font-weight: 800;
+  letter-spacing: 0.04em;
   transition: 0.3s ease;
   transition-delay: 0.1s;
 }
@@ -74,7 +78,7 @@
 
 .sidebar .nav-links {
   height: 100%;
-  padding: 20px 0 150px 0;
+  padding: 16px 0 150px 0;
   overflow: auto;
 }
 
@@ -110,7 +114,7 @@
   display: block;
   flex: 1 1 auto;
   height: 1px;
-  background: rgba(255, 255, 255, 0.14);
+  background: $talalm-border;
 }
 
 .sidebar-divider-label {
@@ -119,12 +123,13 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.55);
+  color: $talalm-text-muted;
 }
 
 .sidebar .nav-links li:hover,
 .sidebar .nav-links li.active {
   background: $english-violet;
+  box-shadow: inset 3px 0 0 $talalm-primary;
 }
 
 .sidebar .nav-links li .icon-link {
@@ -170,7 +175,7 @@
 .sidebar .nav-links li a .link-name {
   margin-left: -15px;
   font-size: $nav-text-size;
-  font-weight: 400;
+  font-weight: 700;
   color: $nav-primary-text-color;
   transition: all 0.4s ease;
   white-space: nowrap;
@@ -235,7 +240,7 @@
   top: -10px;
   margin-top: 0;
   padding: 10px 20px;
-  border-radius: 0 6px 6px 0;
+  border-radius: 0;
   opacity: 0;
   display: block;
   pointer-events: none;
@@ -354,15 +359,6 @@
   font-size: $body-3-text-size;
 }
 
-.app-main-section {
-  padding-top: 0;
-  position: relative;
-  //height: 100vh;
-  left: $sidebar-active-width;
-  width: calc(100% - $sidebar-active-width);
-  transition: all 0.5s ease;
-}
-
 .app-main-section,
 .app-main-section * {
   z-index: 0;
@@ -373,8 +369,7 @@
 }
 
 .sidebar.close ~ .app-main-section {
-  left: $sidebar-closed-width;
-  width: calc(100% - $sidebar-closed-width);
+  margin-left: $sidebar-closed-width;
 }
 
 @media (max-width: $small-screen-width) {
@@ -393,11 +388,6 @@
   .sidebar .nav-links li a .link-name {
     opacity: 0;
     transition: 0;
-  }
-
-  .app-main-section {
-    left: $sidebar-closed-width;
-    width: calc(100% - $sidebar-closed-width);
   }
 
   .app-main-section,

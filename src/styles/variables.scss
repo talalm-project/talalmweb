@@ -1,6 +1,30 @@
-$nav-primary-text-color: #fff;
-$nav-secondary-text-color: #A0ABC0;
-$category-color: #2975A7;
+$font-heading: "Hanken Grotesk", "Geist", system-ui, sans-serif;
+$font-body: "Geist", "Inter", system-ui, sans-serif;
+$font-mono: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+
+$talalm-bg: #131317;
+$talalm-surface-lowest: #0e0e12;
+$talalm-surface-low: #1b1b1f;
+$talalm-surface: #201f23;
+$talalm-surface-high: #2a292e;
+$talalm-surface-highest: #353439;
+$talalm-text: #e5e1e7;
+$talalm-text-strong: #f4f4f5;
+$talalm-text-muted: #a1a1aa;
+$talalm-border: #46464f;
+$talalm-border-strong: #918f9a;
+$talalm-primary: #9395d3;
+$talalm-primary-bright: #c0c1ff;
+$talalm-primary-ink: #171844;
+$talalm-secondary: #dfc56c;
+$talalm-danger: #ffb4ab;
+$talalm-warning: #dfc56c;
+$talalm-success: #9fcaa4;
+$talalm-info: #b7c8e1;
+
+$nav-primary-text-color: $talalm-text-strong;
+$nav-secondary-text-color: $talalm-text-muted;
+$category-color: $talalm-primary;
 
 $logo-text-size: 1.5rem;
 $nav-text-size: .9rem;
@@ -12,12 +36,13 @@ $breadcrumb-text-size: .6rem;
 $sidebar-active-width: 240px;
 $sidebar-closed-width: 78px;
 $sidebar-item-height: calc($nav-text-size * 3.5);
+$workspace-max-width: 1280px;
 
 $logo-text-size: 1.5rem;
 
-$dark-purple: #2f243a;
-$english-violet: #444054;
-$silver: #BEBBBB;
+$dark-purple: $talalm-surface-low;
+$english-violet: $talalm-surface-high;
+$silver: $talalm-text;
 
 // Media query sizes
 $small-screen-width: 800px;

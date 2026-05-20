@@ -166,32 +166,32 @@ const UsersShow = () => {
             {user ? (
               <div className="row g-3">
                 <div className="col-12">
-                  <div className="border rounded p-3 h-100 bg-light-subtle">
-                    <div className="text-muted small text-uppercase mb-1">Email</div>
-                    <div className="fw-semibold">{user.email}</div>
+                  <div className="talalm-detail-block">
+                    <div className="talalm-label mb-1">Email</div>
+                    <div className="talalm-detail-value">{user.email}</div>
                   </div>
                 </div>
                 <div className="col-12">
-                  <div className="border rounded p-3 h-100 bg-light-subtle">
-                    <div className="text-muted small text-uppercase mb-1">Role</div>
-                    <div className="text-capitalize fw-semibold">{user.role}</div>
+                  <div className="talalm-detail-block">
+                    <div className="talalm-label mb-1">Role</div>
+                    <div className="talalm-detail-value text-capitalize">{user.role}</div>
                   </div>
                 </div>
                 <div className="col-12">
-                  <div className="border rounded p-3 h-100 bg-light-subtle">
-                    <div className="text-muted small text-uppercase mb-1">First Name</div>
-                    <div className="fw-semibold">{user.first_name}</div>
+                  <div className="talalm-detail-block">
+                    <div className="talalm-label mb-1">First Name</div>
+                    <div className="talalm-detail-value">{user.first_name}</div>
                   </div>
                 </div>
                 <div className="col-12">
-                  <div className="border rounded p-3 h-100 bg-light-subtle">
-                    <div className="text-muted small text-uppercase mb-1">Last Name</div>
-                    <div className="fw-semibold">{user.last_name}</div>
+                  <div className="talalm-detail-block">
+                    <div className="talalm-label mb-1">Last Name</div>
+                    <div className="talalm-detail-value">{user.last_name}</div>
                   </div>
                 </div>
                 <div className="col-12">
-                  <div className="border rounded p-3 h-100 bg-light-subtle">
-                    <div className="text-muted small text-uppercase mb-1">Status</div>
+                  <div className="talalm-detail-block">
+                    <div className="talalm-label mb-1">Status</div>
                     {statusToLabel(user.status)}
                   </div>
                 </div>

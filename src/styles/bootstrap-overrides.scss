@@ -5,3 +5,8 @@
 .btn {
   border-radius: 0px;
 }
+
+.rounded,
+.rounded-pill {
+  border-radius: 0 !important;
+}

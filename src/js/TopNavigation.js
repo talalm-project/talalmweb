@@ -145,7 +145,7 @@ export default TopNavigation = () => {
             </div>
 
             {shouldShowSearchResults ? (
-              <div className="top-navigation-search-results shadow-lg">
+              <div className="top-navigation-search-results">
                 {filteredServices.length > 0 ? (
                   filteredServices.map((service) => {
                     const isPinned = pinnedServiceIds.includes(service.id);

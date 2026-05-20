@@ -1,0 +1,351 @@
+@import "./variables";
+
+:root {
+  --talalm-bg: #{$talalm-bg};
+  --talalm-surface-lowest: #{$talalm-surface-lowest};
+  --talalm-surface-low: #{$talalm-surface-low};
+  --talalm-surface: #{$talalm-surface};
+  --talalm-surface-high: #{$talalm-surface-high};
+  --talalm-surface-highest: #{$talalm-surface-highest};
+  --talalm-text: #{$talalm-text};
+  --talalm-text-strong: #{$talalm-text-strong};
+  --talalm-text-muted: #{$talalm-text-muted};
+  --talalm-border: #{$talalm-border};
+  --talalm-border-strong: #{$talalm-border-strong};
+  --talalm-primary: #{$talalm-primary};
+  --talalm-primary-bright: #{$talalm-primary-bright};
+  --talalm-primary-ink: #{$talalm-primary-ink};
+  --talalm-secondary: #{$talalm-secondary};
+  --talalm-danger: #{$talalm-danger};
+  --talalm-warning: #{$talalm-warning};
+  --talalm-success: #{$talalm-success};
+  --talalm-info: #{$talalm-info};
+}
+
+.talalm-panel,
+.card {
+  background: $talalm-surface;
+  border: 1px solid $talalm-border;
+  border-radius: 0;
+  color: $talalm-text;
+  box-shadow: none !important;
+}
+
+.talalm-panel-header,
+.card-header {
+  background: $talalm-surface-high;
+  border-bottom: 1px solid $talalm-border;
+  color: $talalm-text-strong;
+  font-family: $font-heading;
+  font-weight: 700;
+}
+
+.talalm-panel-body,
+.card-body,
+.card-footer {
+  background: transparent;
+  color: $talalm-text;
+}
+
+.card-footer {
+  border-top: 1px solid $talalm-border;
+}
+
+.talalm-stat-card {
+  height: 100%;
+  padding: 1rem;
+}
+
+.talalm-stat-label,
+.talalm-label {
+  margin: 0;
+  color: $talalm-text-muted;
+  font-family: $font-body;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.talalm-stat-value {
+  margin: 0.45rem 0 0.15rem;
+  color: $talalm-text-strong;
+  font-family: $font-heading;
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.talalm-muted {
+  color: $talalm-text-muted !important;
+}
+
+.talalm-badge,
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 1.55rem;
+  border: 1px solid $talalm-border;
+  border-radius: 0;
+  background: $talalm-surface-high;
+  color: $talalm-text-strong;
+  font-family: $font-body;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.talalm-badge-icon {
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+}
+
+.text-bg-primary,
+.talalm-badge-primary {
+  background: $talalm-primary !important;
+  border-color: $talalm-primary !important;
+  color: $talalm-primary-ink !important;
+}
+
+.text-bg-secondary,
+.talalm-badge-secondary {
+  background: $talalm-surface-highest !important;
+  border-color: $talalm-border !important;
+  color: $talalm-text !important;
+}
+
+.text-bg-success,
+.talalm-badge-success {
+  background: rgba($talalm-success, 0.16) !important;
+  border-color: rgba($talalm-success, 0.75) !important;
+  color: $talalm-success !important;
+}
+
+.text-bg-warning,
+.talalm-badge-warning {
+  background: rgba($talalm-warning, 0.16) !important;
+  border-color: rgba($talalm-warning, 0.75) !important;
+  color: $talalm-warning !important;
+}
+
+.text-bg-danger,
+.talalm-badge-danger {
+  background: rgba($talalm-danger, 0.15) !important;
+  border-color: rgba($talalm-danger, 0.72) !important;
+  color: $talalm-danger !important;
+}
+
+.text-bg-info,
+.talalm-badge-info {
+  background: rgba($talalm-info, 0.16) !important;
+  border-color: rgba($talalm-info, 0.75) !important;
+  color: $talalm-info !important;
+}
+
+.text-bg-dark,
+.talalm-badge-dark {
+  background: $talalm-surface-lowest !important;
+  border-color: $talalm-border !important;
+  color: $talalm-text !important;
+}
+
+.talalm-priority-item,
+.talalm-detail-block {
+  background: $talalm-surface-low;
+  border: 1px solid $talalm-border;
+  border-radius: 0;
+  color: $talalm-text;
+}
+
+.talalm-detail-block {
+  padding: 1rem;
+  height: 100%;
+}
+
+.talalm-detail-value {
+  color: $talalm-text-strong;
+  font-weight: 700;
+}
+
+.btn {
+  border-radius: 0;
+  box-shadow: none !important;
+  font-family: $font-body;
+  font-weight: 700;
+}
+
+.btn-primary {
+  background: $talalm-primary;
+  border-color: $talalm-primary;
+  color: $talalm-primary-ink;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  background: $talalm-primary-bright;
+  border-color: $talalm-primary-bright;
+  color: $talalm-primary-ink;
+}
+
+.btn-outline-primary,
+.btn-outline-secondary {
+  background: transparent;
+  border-color: $talalm-border-strong;
+  color: $talalm-text-strong;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus,
+.btn-outline-secondary:hover,
+.btn-outline-secondary:focus {
+  background: $talalm-surface-high;
+  border-color: $talalm-primary-bright;
+  color: $talalm-primary-bright;
+}
+
+.btn-danger,
+.btn-outline-danger {
+  background: rgba($talalm-danger, 0.1);
+  border-color: rgba($talalm-danger, 0.8);
+  color: $talalm-danger;
+}
+
+.btn-danger:hover,
+.btn-danger:focus,
+.btn-outline-danger:hover,
+.btn-outline-danger:focus {
+  background: $talalm-danger;
+  border-color: $talalm-danger;
+  color: #2f0b08;
+}
+
+.btn-success {
+  background: rgba($talalm-success, 0.16);
+  border-color: rgba($talalm-success, 0.75);
+  color: $talalm-success;
+}
+
+.btn-success:hover,
+.btn-success:focus {
+  background: $talalm-success;
+  border-color: $talalm-success;
+  color: #102316;
+}
+
+.form-control,
+.form-select {
+  background: $talalm-surface-lowest;
+  border: 1px solid $talalm-border;
+  border-radius: 0;
+  color: $talalm-text-strong;
+  min-height: 40px;
+}
+
+.form-control:focus,
+.form-select:focus {
+  background: $talalm-surface-lowest;
+  border-color: $talalm-primary-bright;
+  box-shadow: none;
+  color: $talalm-text-strong;
+}
+
+.form-control:disabled,
+.form-select:disabled {
+  background: $talalm-surface-low;
+  color: $talalm-text-muted;
+}
+
+.form-label,
+label {
+  margin-bottom: 0.45rem;
+  color: $talalm-text;
+  font-family: $font-body;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.invalid-feedback {
+  color: $talalm-danger;
+}
+
+.table {
+  --bs-table-bg: transparent;
+  --bs-table-color: #{$talalm-text};
+  --bs-table-border-color: #{$talalm-border};
+  --bs-table-hover-bg: #{$talalm-surface-high};
+  --bs-table-hover-color: #{$talalm-text-strong};
+  color: $talalm-text;
+  margin-bottom: 0;
+}
+
+.table th {
+  color: $talalm-text-strong;
+  font-weight: 700;
+}
+
+.table thead th,
+.table-light th,
+.table-light td {
+  background: $talalm-surface-high !important;
+  color: $talalm-text-strong !important;
+  border-color: $talalm-border !important;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.alert {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.alert-danger {
+  background: rgba($talalm-danger, 0.1);
+  border-color: rgba($talalm-danger, 0.75);
+  color: $talalm-danger;
+}
+
+.pagination {
+  margin-bottom: 0;
+}
+
+.page-link {
+  background: $talalm-surface-low;
+  border-color: $talalm-border;
+  border-radius: 0 !important;
+  color: $talalm-text;
+}
+
+.page-link:hover,
+.page-link.active {
+  background: $talalm-primary;
+  border-color: $talalm-primary;
+  color: $talalm-primary-ink;
+}
+
+.page-link.disabled,
+.page-link:disabled {
+  background: $talalm-surface-lowest;
+  border-color: $talalm-border;
+  color: $talalm-text-muted;
+}
+
+.modal-content {
+  background: $talalm-surface;
+  border: 1px solid $talalm-border;
+  border-radius: 0;
+  color: $talalm-text;
+}
+
+.modal-header,
+.modal-footer {
+  border-color: $talalm-border;
+}

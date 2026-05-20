@@ -27,7 +27,7 @@ export default Sidebar = () => {
             <FontAwesomeIcon icon={faBars}/>
           </i>
           <span className="logo-name">
-            AD
+            TALA LM
           </span>
         </div>
       </a>

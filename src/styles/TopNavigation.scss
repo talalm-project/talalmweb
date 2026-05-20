@@ -3,11 +3,18 @@
 .top-navigation {
   position: sticky;
   top: 0;
-  background: #64748b;
+  background: $talalm-surface;
   z-index: 110;
-  padding: 0.7rem 0 0.6rem;
-  color: #f8fafc;
-  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.12);
+  padding: 0.75rem 0 0.65rem;
+  color: $talalm-text;
+  border-bottom: 1px solid $talalm-border !important;
+}
+
+.top-navigation .container-fluid {
+  width: 100%;
+  max-width: none;
+  margin-right: 0;
+  margin-left: 0;
 }
 
 .top-navigation-content {
@@ -15,13 +22,15 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.85rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  min-width: 0;
 }
 
 .top-navigation-search-shell {
   position: relative;
-  flex: 1 1 360px;
+  flex: 1 1 520px;
   max-width: 640px;
+  min-width: 280px;
 }
 
 .top-navigation-search {
@@ -33,28 +42,27 @@
   top: 50%;
   left: 0.9rem;
   transform: translateY(-50%);
-  color: rgba(248, 250, 252, 0.78);
+  color: $talalm-text-muted;
 }
 
 .top-navigation-search .form-control {
   min-height: 40px;
   padding-left: 2.4rem;
-  border-radius: 999px;
-  border: 1px solid rgba(248, 250, 252, 0.28);
-  background: rgba(255, 255, 255, 0.16);
-  color: #f8fafc;
+  border: 1px solid $talalm-border;
+  background: $talalm-surface-lowest;
+  color: $talalm-text-strong;
   box-shadow: none;
 }
 
 .top-navigation-search .form-control::placeholder {
-  color: rgba(248, 250, 252, 0.72);
+  color: $talalm-text-muted;
 }
 
 .top-navigation-search .form-control:focus {
-  background: rgba(255, 255, 255, 0.22);
-  color: #f8fafc;
-  border-color: rgba(255, 255, 255, 0.78);
-  box-shadow: 0 0 0 0.15rem rgba(255, 255, 255, 0.14);
+  background: $talalm-surface-lowest;
+  color: $talalm-text-strong;
+  border-color: $talalm-primary-bright;
+  box-shadow: none;
 }
 
 .top-navigation-search-results {
@@ -62,10 +70,10 @@
   top: calc(100% + 0.45rem);
   left: 0;
   width: 100%;
-  border-radius: 12px;
   overflow: hidden;
-  border: 1px solid rgba(248, 250, 252, 0.18);
-  background: #5f6f86;
+  border: 1px solid $talalm-border;
+  background: $talalm-surface;
+  box-shadow: none !important;
 }
 
 .top-navigation-service-result {
@@ -77,14 +85,14 @@
   padding: 0.8rem 0.95rem;
   border: 0;
   background: transparent;
-  color: #f8fafc;
+  color: $talalm-text;
   text-align: left;
   transition: background 0.2s ease;
 }
 
 .top-navigation-service-result:hover,
 .top-navigation-service-result.active {
-  background: rgba(255, 255, 255, 0.1);
+  background: $talalm-surface-high;
 }
 
 .top-navigation-service-copy {
@@ -99,12 +107,13 @@
   align-items: center;
   gap: 0.55rem;
   font-size: 0.92rem;
-  font-weight: 600;
+  font-weight: 700;
+  color: $talalm-text-strong;
 }
 
 .top-navigation-service-description {
   font-size: 0.78rem;
-  color: rgba(248, 250, 252, 0.82);
+  color: $talalm-text-muted;
 }
 
 .top-navigation-star {
@@ -113,22 +122,23 @@
   justify-content: center;
   width: 34px;
   height: 34px;
-  border-radius: 999px;
-  color: rgba(248, 250, 252, 0.58);
+  border: 1px solid transparent;
+  color: $talalm-text-muted;
   transition: all 0.2s ease;
 }
 
 .top-navigation-star:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: $talalm-surface-high;
+  border-color: $talalm-border;
 }
 
 .top-navigation-star.pinned {
-  color: #fbbf24;
+  color: $talalm-secondary;
 }
 
 .top-navigation-empty-state {
   padding: 0.9rem 1rem;
-  color: rgba(248, 250, 252, 0.82);
+  color: $talalm-text-muted;
   font-size: 0.82rem;
 }
 
@@ -137,16 +147,28 @@
   align-items: center;
   justify-content: flex-end;
   gap: 0.8rem;
+  flex: 0 1 auto;
+  min-width: 0;
   margin-left: auto;
 }
 
 .top-navigation-user {
+  min-width: 0;
   line-height: 1.1;
 }
 
+.top-navigation-user p,
 .top-navigation-user-role {
-  color: rgba(255, 255, 255, 0.96);
-  font-weight: 600;
+  display: block;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.top-navigation-user-role {
+  color: $talalm-text-muted;
+  font-weight: 700;
 }
 
 .top-navigation-pinned-panel {
@@ -155,7 +177,7 @@
   gap: 0.75rem;
   margin-top: 0.55rem;
   padding-top: 0.55rem;
-  border-top: 1px solid rgba(226, 232, 240, 0.14);
+  border-top: 1px solid $talalm-border;
   flex-wrap: wrap;
 }
 
@@ -163,7 +185,8 @@
   font-size: 0.7rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(248, 250, 252, 0.82);
+  color: $talalm-text-muted;
+  font-weight: 700;
 }
 
 .top-navigation-pinned-list {
@@ -178,17 +201,16 @@
   align-items: center;
   gap: 0.55rem;
   padding: 0.38rem 0.45rem 0.38rem 0.75rem;
-  border-radius: 999px;
-  border: 1px solid rgba(248, 250, 252, 0.18);
-  background: rgba(255, 255, 255, 0.12);
-  color: #f8fafc;
+  border: 1px solid $talalm-border;
+  background: $talalm-surface-low;
+  color: $talalm-text;
   transition: all 0.2s ease;
 }
 
 .top-navigation-pinned-item:hover,
 .top-navigation-pinned-item.active {
-  background: rgba(255, 255, 255, 0.18);
-  border-color: rgba(248, 250, 252, 0.28);
+  background: $talalm-surface-high;
+  border-color: $talalm-primary-bright;
 }
 
 .top-navigation-pinned-copy {
@@ -200,6 +222,10 @@
 }
 
 @media (max-width: $small-screen-width) {
+  .top-navigation-content {
+    flex-wrap: wrap;
+  }
+
   .top-navigation-search-shell {
     max-width: none;
     width: 100%;

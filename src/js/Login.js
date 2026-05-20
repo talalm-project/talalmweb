@@ -30,10 +30,10 @@ export default Login = () => {
   }
 
   return (
-    <div className="d-flex align-items-center justify-content-center vh-100">
-      <div className="card shadow-lg login-form">
+    <div className="auth-screen d-flex align-items-center justify-content-center">
+      <div className="card talalm-panel login-form">
         <div className="card-body p-4">
-          <h1 className="h3 mb-3 text-center mt-2">
+          <h1 className="h3 mb-3 text-center mt-2 login-title">
             Sign In
           </h1>
           <hr/>

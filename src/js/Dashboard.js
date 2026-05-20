@@ -175,21 +175,21 @@ const Dashboard = () => {
         {stats.map((stat) => {
           return (
             <div className="col-12 col-md-6 col-xl-3" key={stat.title}>
-              <div className="card shadow-sm h-100 border-0">
-                <div className="card-body">
+              <div className="talalm-panel talalm-stat-card">
+                <div>
                   <div className="d-flex justify-content-between align-items-start mb-3">
                     <div>
-                      <p className="text-muted text-uppercase small fw-semibold mb-2">
+                      <p className="talalm-stat-label">
                         {stat.title}
                       </p>
-                      <h2 className="h4 mb-1">
+                      <h2 className="talalm-stat-value">
                         {stat.value}
                       </h2>
-                      <p className="mb-0 text-muted small">
+                      <p className="mb-0 talalm-muted small">
                         {stat.note}
                       </p>
                     </div>
-                    <span className={`badge rounded-pill text-bg-${stat.tone} p-3`}>
+                    <span className={`badge talalm-badge-icon text-bg-${stat.tone}`}>
                       <FontAwesomeIcon icon={stat.icon} />
                     </span>
                   </div>
@@ -256,17 +256,17 @@ const Dashboard = () => {
               {priorityItems.map((item) => {
                 return (
                   <div
-                    className="border rounded p-3 d-flex align-items-start gap-3"
+                    className="talalm-priority-item p-3 d-flex align-items-start gap-3"
                     key={item.title}
                   >
-                    <span className={`badge text-bg-${item.tone} p-3`}>
+                    <span className={`badge talalm-badge-icon text-bg-${item.tone}`}>
                       <FontAwesomeIcon icon={item.icon} />
                     </span>
                     <div>
                       <div className="fw-semibold mb-1">
                         {item.title}
                       </div>
-                      <div className="text-muted small">
+                      <div className="talalm-muted small">
                         {item.description}
                       </div>
                     </div>
