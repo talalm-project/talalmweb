@@ -1,6 +1,7 @@
 import {
   faDashboard,
   faGears,
+  faPlug,
   faStethoscope,
   faUsers
 } from "@fortawesome/free-solid-svg-icons";
@@ -24,6 +25,15 @@ export const navigationServices = [
     section: "admin",
     adminOnly: true,
     keywords: ["accounts", "members", "roles", "access"]
+  },
+  {
+    id: "connectors",
+    label: "Connectors",
+    description: "Browse model connectors and filter by name or connection type.",
+    path: "/connectors",
+    icon: faPlug,
+    section: "main",
+    keywords: ["models", "local", "openai", "providers"]
   },
   {
     id: "doctor",

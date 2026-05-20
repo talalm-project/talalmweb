@@ -13,6 +13,7 @@ import Dashboard from "./Dashboard";
 import Doctor from "./Doctor";
 import Home from "./Home";
 import Settings from "./Settings";
+import ConnectorsIndex from "./connectors/Index";
 import UsersIndex from "./users/Index";
 import UsersShow from "./users/Show";
 import UsersForm from "./users/Form";
@@ -69,6 +70,10 @@ const AuthenticatedApp = () => {
             <Route
               path="/settings"
               element={<Settings />}
+            />
+            <Route
+              path="/connectors"
+              element={<ConnectorsIndex />}
             />
             <Route
               path="/doctor"
