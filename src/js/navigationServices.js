@@ -1,6 +1,7 @@
 import {
   faDashboard,
   faGears,
+  faMicrochip,
   faPlug,
   faStethoscope,
   faUsers
@@ -44,6 +45,16 @@ export const navigationServices = [
     section: "admin",
     adminOnly: true,
     keywords: ["system", "configuration", "environment", "storage", "database"]
+  },
+  {
+    id: "local-models",
+    label: "Local Models",
+    description: "Review GGUF models available on the backend file system.",
+    path: "/local-models",
+    icon: faMicrochip,
+    section: "admin",
+    adminOnly: true,
+    keywords: ["models", "gguf", "manifest", "local"]
   },
   {
     id: "settings",

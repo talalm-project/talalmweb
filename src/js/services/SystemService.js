@@ -6,3 +6,9 @@ export const fetchDoctor = () => {
     headers: buildHeaders()
   });
 };
+
+export const fetchLocalModels = () => {
+  return axios.get(`${API_BASE_URL}/system/local_models`, {
+    headers: buildHeaders()
+  });
+};

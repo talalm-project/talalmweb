@@ -12,6 +12,7 @@ import {
 import Dashboard from "./Dashboard";
 import Doctor from "./Doctor";
 import Home from "./Home";
+import LocalModelsIndex from "./LocalModelsIndex";
 import Settings from "./Settings";
 import ConnectorsIndex from "./connectors/Index";
 import UsersIndex from "./users/Index";
@@ -80,6 +81,14 @@ const AuthenticatedApp = () => {
               element={(
                 <AdminRoute>
                   <Doctor />
+                </AdminRoute>
+              )}
+            />
+            <Route
+              path="/local-models"
+              element={(
+                <AdminRoute>
+                  <LocalModelsIndex />
                 </AdminRoute>
               )}
             />
