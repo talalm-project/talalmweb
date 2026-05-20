@@ -11,7 +11,7 @@ import ConnectorService from "../services/ConnectorService";
 const CONNECTION_TYPES = [
   { value: "", label: "All types" },
   { value: "local", label: "Local" },
-  { value: "open-ai", label: "OpenAI" }
+  { value: "openai", label: "OpenAI" }
 ];
 
 const formatConnectionType = (connectionType) => {

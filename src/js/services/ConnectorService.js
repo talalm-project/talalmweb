@@ -25,6 +25,12 @@ const ConnectorService = {
     return axios.put(`${API_BASE_URL}/connectors/${id}`, args, {
       headers: buildHeaders()
     });
+  },
+
+  inferConnector(id, args) {
+    return axios.post(`${API_BASE_URL}/connectors/${id}/infer`, args, {
+      headers: buildHeaders()
+    });
   }
 };
 

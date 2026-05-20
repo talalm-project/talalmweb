@@ -10,6 +10,7 @@ The web frontend for TalaLM
 * [`postcss`](https://github.com/postcss/postcss)
 * [`sass`](https://sass-lang.com/)
 * [`axios`](https://github.com/axios/axios)
+* [`react-markdown`](https://github.com/remarkjs/react-markdown)
 
 
 ## Setup
@@ -41,6 +42,22 @@ npm run start
 ## Routing
 
 Public routes live in `src/js/App.js` and render without authentication. The default public page is `Home` at `/`, and the login screen is at `/login`. Authenticated routes render inside the sidebar layout once a session exists.
+
+## Connectors
+
+The authenticated connector screens let users create, list, view, and edit
+model connectors backed by the API `/connectors` endpoints.
+
+The connector detail page includes a `Test Connector` panel. It behaves like a
+scrollable chat interface and sends prompts to:
+
+```text
+POST /connectors/:id/infer
+```
+
+The chat panel sends conversation history as chat messages and renders assistant
+responses with Markdown via `react-markdown`. This matches the backend default
+inference system prompt, which asks models to answer in Markdown.
 
 ## Clone for a new project
 

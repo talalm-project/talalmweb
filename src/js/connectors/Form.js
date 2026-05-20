@@ -12,7 +12,7 @@ import { fetchLocalModels } from "../services/SystemService";
 
 const CONNECTION_TYPES = [
   { value: "local", label: "Local" },
-  { value: "open-ai", label: "OpenAI" }
+  { value: "openai", label: "OpenAI" }
 ];
 
 const ConnectorsForm = () => {
@@ -36,8 +36,8 @@ const ConnectorsForm = () => {
   const { id } = useParams();
   const isEditing = Boolean(id);
   const isLocal = formValues.connection_type === "local";
-  const isOpenAi = formValues.connection_type === "open-ai";
-  const apiKeyRequired = isOpenAi && (!isEditing || originalConnectionType !== "open-ai");
+  const isOpenAi = formValues.connection_type === "openai";
+  const apiKeyRequired = isOpenAi && (!isEditing || originalConnectionType !== "openai");
 
   const updateFormValue = (key, value) => {
     setFormValues((currentValues) => {
@@ -345,7 +345,7 @@ const ConnectorsForm = () => {
                       <FontAwesomeIcon icon={showApiKey ? faEyeSlash : faEye} />
                     </button>
                   </div>
-                  {isEditing && originalConnectionType === "open-ai" ? (
+                  {isEditing && originalConnectionType === "openai" ? (
                     <div className="form-text">
                       Leave blank to keep the existing API key.
                     </div>
