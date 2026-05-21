@@ -14,6 +14,7 @@ import Doctor from "./Doctor";
 import Home from "./Home";
 import LocalModelsIndex from "./LocalModelsIndex";
 import NotebooksIndex from "./notebooks/Index";
+import NotebooksShow from "./notebooks/Show";
 import Settings from "./Settings";
 import ConnectorsForm from "./connectors/Form";
 import ConnectorsIndex from "./connectors/Index";
@@ -94,6 +95,10 @@ const AuthenticatedApp = () => {
             <Route
               path="/notebooks"
               element={<NotebooksIndex />}
+            />
+            <Route
+              path="/notebooks/:id"
+              element={<NotebooksShow />}
             />
             <Route
               path="/doctor"

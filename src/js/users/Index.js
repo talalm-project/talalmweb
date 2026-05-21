@@ -95,7 +95,7 @@ const UsersIndex = () => {
                     <th>Email</th>
                     <th>Role</th>
                     <th>Status</th>
-                    <th className="text-end">Action</th>
+                    <th className="text-center">Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -109,7 +109,7 @@ const UsersIndex = () => {
                           <td>{user.email}</td>
                           <td className="text-capitalize">{user.role}</td>
                           <td>{statusToLabel(user.status)}</td>
-                          <td className="text-end">
+                          <td className="text-center">
                             <Link className="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-2" to={`/users/${user.id}`}>
                               <FontAwesomeIcon icon={faEye} />
                               <span>View</span>

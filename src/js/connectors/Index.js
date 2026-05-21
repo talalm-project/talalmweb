@@ -175,7 +175,7 @@ const ConnectorsIndex = () => {
                   <tr>
                     <th>Name</th>
                     <th>Connection Type</th>
-                    <th className="text-end">Action</th>
+                    <th className="text-center">Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -190,7 +190,7 @@ const ConnectorsIndex = () => {
                             </span>
                           </td>
                           <td>{formatConnectionType(connector.connection_type)}</td>
-                          <td className="text-end">
+                          <td className="text-center">
                             <Link className="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-2" to={`/connectors/${connector.id}`}>
                               <FontAwesomeIcon icon={faEye} />
                               <span>View</span>
