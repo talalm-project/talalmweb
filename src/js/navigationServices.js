@@ -1,6 +1,7 @@
 import {
   faDashboard,
   faGears,
+  faBook,
   faMicrochip,
   faPlug,
   faStethoscope,
@@ -26,6 +27,15 @@ export const navigationServices = [
     section: "admin",
     adminOnly: true,
     keywords: ["accounts", "members", "roles", "access"]
+  },
+  {
+    id: "notebooks",
+    label: "Notebooks",
+    description: "Browse notebook workspaces and filter by title or status.",
+    path: "/notebooks",
+    icon: faBook,
+    section: "main",
+    keywords: ["documents", "rag", "knowledge", "search"]
   },
   {
     id: "connectors",

@@ -13,6 +13,7 @@ import Dashboard from "./Dashboard";
 import Doctor from "./Doctor";
 import Home from "./Home";
 import LocalModelsIndex from "./LocalModelsIndex";
+import NotebooksIndex from "./notebooks/Index";
 import Settings from "./Settings";
 import ConnectorsForm from "./connectors/Form";
 import ConnectorsIndex from "./connectors/Index";
@@ -89,6 +90,10 @@ const AuthenticatedApp = () => {
             <Route
               path="/connectors/:id"
               element={<ConnectorsShow />}
+            />
+            <Route
+              path="/notebooks"
+              element={<NotebooksIndex />}
             />
             <Route
               path="/doctor"
