@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faMicrochip } from "@fortawesome/free-solid-svg-icons";
+import { faBrain, faDiagramProject, faMicrochip } from "@fortawesome/free-solid-svg-icons";
 import AdminContent from "./commons/AdminContent";
 import Loader from "./commons/Loader";
 import PageHeader from "./commons/PageHeader";
@@ -38,6 +38,28 @@ const LocalModelsIndex = () => {
     return <Loader />;
   }
 
+  const modelTypeBadge = (type) => {
+    if (type === "inference") {
+      return (
+        <span className="badge text-bg-primary d-inline-flex align-items-center gap-1">
+          <FontAwesomeIcon icon={faBrain} />
+          <span>Inference</span>
+        </span>
+      );
+    }
+
+    if (type === "embedding" || type === "embeddings") {
+      return (
+        <span className="badge text-bg-info d-inline-flex align-items-center gap-1">
+          <FontAwesomeIcon icon={faDiagramProject} />
+          <span>Embedding</span>
+        </span>
+      );
+    }
+
+    return <span className="badge text-bg-secondary">Not specified</span>;
+  };
+
   return (
     <div className="d-flex flex-column gap-4">
       <PageHeader
@@ -64,6 +86,7 @@ const LocalModelsIndex = () => {
             <thead className="table-light">
               <tr>
                 <th>Name</th>
+                <th>Type</th>
                 <th>Path</th>
               </tr>
             </thead>
@@ -73,6 +96,7 @@ const LocalModelsIndex = () => {
                   return (
                     <tr key={`${model.name}-${model.path}-${index}`}>
                       <td className="fw-semibold">{model.name || "Unnamed model"}</td>
+                      <td>{modelTypeBadge(model.type)}</td>
                       <td className="text-break">
                         <code>{model.path || "No path configured"}</code>
                       </td>
@@ -81,7 +105,7 @@ const LocalModelsIndex = () => {
                 })
               ) : (
                 <tr>
-                  <td className="text-center text-muted py-4" colSpan="2">
+                  <td className="text-center text-muted py-4" colSpan="3">
                     No local models found.
                   </td>
                 </tr>

@@ -1,5 +1,5 @@
 import axios from "axios";
-import { buildHeaders } from "../helpers/AppHelper";
+import { buildFileUploadHeaders, buildHeaders } from "../helpers/AppHelper";
 
 const ConnectorService = {
   fetchConnectors(args = {}) {
@@ -30,6 +30,15 @@ const ConnectorService = {
   inferConnector(id, args) {
     return axios.post(`${API_BASE_URL}/connectors/${id}/infer`, args, {
       headers: buildHeaders()
+    });
+  },
+
+  generateEmbeddings(id, file) {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    return axios.post(`${API_BASE_URL}/connectors/${id}/generate_embeddings`, formData, {
+      headers: buildFileUploadHeaders()
     });
   }
 };

@@ -21,11 +21,14 @@ const ConnectorsForm = () => {
     name: "",
     connection_type: "local",
     local_file_path: "",
+    embedding_local_file_path: "",
+    embedding_name: "",
     api_key: "",
     data: {}
   });
   const [localModels, setLocalModels] = useState([]);
   const [selectedLocalModelPath, setSelectedLocalModelPath] = useState("");
+  const [selectedEmbeddingModelPath, setSelectedEmbeddingModelPath] = useState("");
   const [originalConnectionType, setOriginalConnectionType] = useState(null);
   const [showApiKey, setShowApiKey] = useState(false);
   const [errors, setErrors] = useState({});
@@ -38,6 +41,12 @@ const ConnectorsForm = () => {
   const isLocal = formValues.connection_type === "local";
   const isOpenAi = formValues.connection_type === "openai";
   const apiKeyRequired = isOpenAi && (!isEditing || originalConnectionType !== "openai");
+  const inferenceLocalModels = localModels.filter((model) => {
+    return !model.type || model.type === "inference";
+  });
+  const embeddingLocalModels = localModels.filter((model) => {
+    return model.type === "embedding" || model.type === "embeddings";
+  });
 
   const updateFormValue = (key, value) => {
     setFormValues((currentValues) => {
@@ -74,6 +83,21 @@ const ConnectorsForm = () => {
     });
   };
 
+  const applyEmbeddingModel = (path, models = localModels) => {
+    const embeddingModel = models.find((model) => {
+      return model.path === path;
+    });
+
+    setSelectedEmbeddingModelPath(path);
+    setFormValues((currentValues) => {
+      return {
+        ...currentValues,
+        embedding_name: embeddingModel?.name || "",
+        embedding_local_file_path: embeddingModel?.path || ""
+      };
+    });
+  };
+
   const loadForm = () => {
     setIsBootstrapping(true);
     setPageError("");
@@ -101,6 +125,8 @@ const ConnectorsForm = () => {
             name: connector.name || "",
             connection_type: connector.connection_type || "local",
             local_file_path: connector.local_file_path || "",
+            embedding_local_file_path: connector.embedding_local_file_path || "",
+            embedding_name: connector.embedding_name || "",
             api_key: "",
             data: connector.data || {}
           };
@@ -110,7 +136,11 @@ const ConnectorsForm = () => {
           const localModel = models.find((model) => {
             return model.path === connector.local_file_path;
           });
+          const embeddingModel = models.find((model) => {
+            return model.path === connector.embedding_local_file_path;
+          });
           setSelectedLocalModelPath(localModel?.path || "");
+          setSelectedEmbeddingModelPath(embeddingModel?.path || "");
         }
       })
       .catch((error) => {
@@ -134,10 +164,13 @@ const ConnectorsForm = () => {
         connection_type: connectionType,
         name: connectionType === "local" ? "" : currentValues.name,
         local_file_path: "",
+        embedding_local_file_path: "",
+        embedding_name: "",
         api_key: connectionType === "local" ? "" : currentValues.api_key
       };
     });
     setSelectedLocalModelPath("");
+    setSelectedEmbeddingModelPath("");
     setErrors({});
   };
 
@@ -155,11 +188,15 @@ const ConnectorsForm = () => {
 
     if (isLocal) {
       payload.local_file_path = formValues.local_file_path;
+      payload.embedding_local_file_path = formValues.embedding_local_file_path;
+      payload.embedding_name = formValues.embedding_name;
       payload.api_key = null;
     }
 
     if (isOpenAi) {
       payload.local_file_path = null;
+      payload.embedding_local_file_path = null;
+      payload.embedding_name = null;
       if (!isEditing || formValues.api_key) {
         payload.api_key = formValues.api_key;
       }
@@ -262,14 +299,14 @@ const ConnectorsForm = () => {
                   <label className="form-label">Local Model</label>
                   <select
                     className="form-select"
-                    disabled={isLoading || localModels.length === 0}
+                    disabled={isLoading || inferenceLocalModels.length === 0}
                     value={selectedLocalModelPath}
                     onChange={(event) => {
                       applyLocalModel(event.target.value);
                     }}
                   >
                     <option value="">Select a local model</option>
-                    {localModels.map((model) => {
+                    {inferenceLocalModels.map((model) => {
                       return (
                         <option key={model.path} value={model.path}>
                           {model.name}
@@ -277,9 +314,9 @@ const ConnectorsForm = () => {
                       );
                     })}
                   </select>
-                  {localModels.length === 0 ? (
+                  {inferenceLocalModels.length === 0 ? (
                     <div className="form-text text-warning">
-                      No local models are available in the backend manifest.
+                      No local inference models are available in the backend manifest.
                     </div>
                   ) : null}
                 </div>
@@ -302,6 +339,52 @@ const ConnectorsForm = () => {
                     value={formValues.local_file_path}
                   />
                   {renderInputErrors(errors, "local_file_path")}
+                </div>
+
+                <div className="col-12">
+                  <label className="form-label">Embedding Model</label>
+                  <select
+                    className="form-select"
+                    disabled={isLoading || embeddingLocalModels.length === 0}
+                    value={selectedEmbeddingModelPath}
+                    onChange={(event) => {
+                      applyEmbeddingModel(event.target.value);
+                    }}
+                  >
+                    <option value="">Select an embedding model</option>
+                    {embeddingLocalModels.map((model) => {
+                      return (
+                        <option key={model.path} value={model.path}>
+                          {model.name}
+                        </option>
+                      );
+                    })}
+                  </select>
+                  {embeddingLocalModels.length === 0 ? (
+                    <div className="form-text text-warning">
+                      No local embedding models are available in the backend manifest.
+                    </div>
+                  ) : null}
+                </div>
+
+                <div className="col-12">
+                  <label className="form-label">Embedding Name</label>
+                  <input
+                    className={getInputClassName(errors, "embedding_name")}
+                    disabled
+                    value={formValues.embedding_name}
+                  />
+                  {renderInputErrors(errors, "embedding_name")}
+                </div>
+
+                <div className="col-12">
+                  <label className="form-label">Embedding Local File Path</label>
+                  <input
+                    className={getInputClassName(errors, "embedding_local_file_path")}
+                    disabled
+                    value={formValues.embedding_local_file_path}
+                  />
+                  {renderInputErrors(errors, "embedding_local_file_path")}
                 </div>
               </React.Fragment>
             ) : null}
