@@ -154,6 +154,18 @@ body[data-theme="light"] {
   color: $talalm-warning !important;
 }
 
+.talalm-badge-processing {
+  background: #fff4c2 !important;
+  border-color: #8a6a00 !important;
+  color: #2b2200 !important;
+}
+
+body[data-theme="light"] .talalm-badge-processing {
+  background: #5a4300 !important;
+  border-color: #5a4300 !important;
+  color: #fff7d6 !important;
+}
+
 .text-bg-danger,
 .talalm-badge-danger {
   background: rgba($talalm-danger, 0.15) !important;
@@ -205,6 +217,68 @@ body[data-theme="light"] {
   font-size: 0.82rem;
   font-weight: 400;
   white-space: pre;
+}
+
+.talalm-empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  min-height: 8rem;
+  padding: 1rem;
+  background: var(--talalm-surface-lowest);
+  border: 1px dashed var(--talalm-border);
+  color: var(--talalm-text-muted);
+  font-weight: 700;
+}
+
+.talalm-notebook-files {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.talalm-notebook-file {
+  padding: 0.85rem;
+  background: var(--talalm-surface-low);
+  border: 1px solid var(--talalm-border);
+}
+
+.talalm-notebook-file-name {
+  color: var(--talalm-text-strong);
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.talalm-notebook-file-meta {
+  color: var(--talalm-text-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.talalm-notebook-file-status {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 0.4rem;
+}
+
+.talalm-notebook-file-processing {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.55rem;
+  height: 1.55rem;
+  background: rgba($talalm-warning, 0.18);
+  border: 1px solid rgba($talalm-warning, 0.6);
+  color: var(--talalm-text-strong);
+}
+
+.talalm-notebook-file-processing .spinner-border {
+  width: 0.82rem;
+  height: 0.82rem;
+  border-width: 0.14rem;
 }
 
 .talalm-connector-show {
@@ -554,13 +628,27 @@ body[data-theme="light"] {
 
 .talalm-chat-composer {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.75rem;
-  align-items: end;
+}
+
+.talalm-chat-retrieval {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.65rem;
+}
+
+.talalm-chat-retrieval .form-control {
+  width: 5rem;
 }
 
 .talalm-chat-composer textarea {
   resize: vertical;
+}
+
+.talalm-chat-send-button {
+  justify-self: end;
 }
 
 .btn {
@@ -568,6 +656,16 @@ body[data-theme="light"] {
   box-shadow: none !important;
   font-family: $font-body;
   font-weight: 700;
+}
+
+.talalm-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  flex: 0 0 auto;
 }
 
 .btn-primary {
@@ -756,6 +854,20 @@ label {
 
   .talalm-chat-composer {
     grid-template-columns: 1fr;
+  }
+
+  .talalm-chat-retrieval {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .talalm-chat-retrieval .form-control {
+    width: 100%;
+  }
+
+  .talalm-chat-send-button {
+    justify-content: center;
+    justify-self: stretch;
   }
 
   .talalm-chat-stats {

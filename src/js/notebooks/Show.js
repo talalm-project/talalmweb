@@ -1,13 +1,14 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Button, Modal } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowLeft, faClock, faPlug, faTrash, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { faArrowLeft, faFileLines, faPaperPlane, faPlug, faPlus, faSliders, faTrash, faXmark } from "@fortawesome/free-solid-svg-icons";
 import AdminContent from "../commons/AdminContent";
 import ConfirmationModal from "../commons/ConfirmationModal";
 import Loader from "../commons/Loader";
 import PageHeader from "../commons/PageHeader";
-import { statusToLabel } from "../helpers/AppHelper";
+import { getInputClassName, renderInputErrors, statusToLabel } from "../helpers/AppHelper";
 import { destroySession } from "../services/AuthService";
 import NotebookService from "../services/NotebookService";
 
@@ -15,6 +16,14 @@ const CONNECTION_TYPES = {
   local: "Local",
   openai: "OpenAI"
 };
+
+const emptyNotebookFileForm = {
+  name: "",
+  file: null
+};
+
+const POLLED_NOTEBOOK_FILE_STATUSES = ["pending", "uploading", "processing"];
+const DELETABLE_NOTEBOOK_FILE_STATUSES = ["pending", "active"];
 
 const renderValue = (value) => {
   if (value === null || value === undefined || value === "") {
@@ -24,13 +33,100 @@ const renderValue = (value) => {
   return value;
 };
 
+const formatByteSize = (value) => {
+  if (value === null || value === undefined) {
+    return "Unknown size";
+  }
+
+  const units = ["B", "KB", "MB", "GB"];
+  let size = Number(value);
+  let unitIndex = 0;
+
+  while (size >= 1024 && unitIndex < units.length - 1) {
+    size /= 1024;
+    unitIndex += 1;
+  }
+
+  return `${size.toFixed(unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
+};
+
+const renderResponse = (value) => {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (value?.response) {
+    return renderResponse(value.response);
+  }
+
+  if (value?.output_text) {
+    return value.output_text;
+  }
+
+  const firstChoice = value?.choices?.[0];
+  if (firstChoice?.message?.content) {
+    return firstChoice.message.content;
+  }
+  if (firstChoice?.text) {
+    return firstChoice.text;
+  }
+
+  const outputText = value?.output?.flatMap((item) => {
+    return item.content || [];
+  }).find((content) => {
+    return content.type === "output_text" && content.text;
+  });
+  if (outputText) {
+    return outputText.text;
+  }
+
+  return JSON.stringify(value, null, 2);
+};
+
+const renderMetric = (value, formatter = (metricValue) => metricValue) => {
+  if (value === null || value === undefined) {
+    return "n/a";
+  }
+
+  return formatter(value);
+};
+
+const formatNumber = (value) => {
+  return Number(value).toLocaleString();
+};
+
+const formatSeconds = (value) => {
+  return `${Number(value).toFixed(2)}s`;
+};
+
+const formatTokensPerSecond = (value) => {
+  return `${Number(value).toFixed(2)}/s`;
+};
+
 const NotebooksShow = () => {
   const [notebook, setNotebook] = useState(null);
+  const [notebookFiles, setNotebookFiles] = useState([]);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [prompt, setPrompt] = useState("");
+  const [retrievalK, setRetrievalK] = useState("5");
+  const [chatError, setChatError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [showConnectorModal, setShowConnectorModal] = useState(false);
+  const [isFilesLoading, setIsFilesLoading] = useState(true);
+  const [isInferring, setIsInferring] = useState(false);
+  const [showConfigModal, setShowConfigModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showDeleteFileModal, setShowDeleteFileModal] = useState(false);
+  const [showFileModal, setShowFileModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeletingFile, setIsDeletingFile] = useState(false);
+  const [selectedNotebookFile, setSelectedNotebookFile] = useState(null);
+  const [isUploadingFile, setIsUploadingFile] = useState(false);
+  const [notebookFileForm, setNotebookFileForm] = useState(emptyNotebookFileForm);
+  const [notebookFileErrors, setNotebookFileErrors] = useState({});
+  const [notebookFileErrorMessage, setNotebookFileErrorMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [filesErrorMessage, setFilesErrorMessage] = useState("");
+  const chatLogRef = useRef(null);
   const navigate = useNavigate();
   const { id } = useParams();
 
@@ -56,9 +152,59 @@ const NotebooksShow = () => {
       });
   };
 
+  const loadNotebookFiles = ({ silent = false } = {}) => {
+    if (!silent) {
+      setIsFilesLoading(true);
+    }
+
+    NotebookService.fetchNotebookFiles(id)
+      .then((response) => {
+        setNotebookFiles(response.data.records || []);
+        setFilesErrorMessage("");
+      })
+      .catch((error) => {
+        if ([401, 403].includes(error.response?.status)) {
+          destroySession();
+          navigate("/login");
+          return;
+        }
+
+        setFilesErrorMessage(error.response?.data?.message || "Unable to load notebook files.");
+      })
+      .finally(() => {
+        if (!silent) {
+          setIsFilesLoading(false);
+        }
+      });
+  };
+
   useEffect(() => {
     loadNotebook();
+    loadNotebookFiles();
   }, [id]);
+
+  useEffect(() => {
+    const shouldPollFiles = notebookFiles.some((notebookFile) => {
+      return POLLED_NOTEBOOK_FILE_STATUSES.includes(notebookFile.status);
+    });
+    if (!shouldPollFiles) {
+      return undefined;
+    }
+
+    const intervalId = window.setInterval(() => {
+      loadNotebookFiles({ silent: true });
+    }, 5000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [id, notebookFiles]);
+
+  useEffect(() => {
+    if (chatLogRef.current) {
+      chatLogRef.current.scrollTop = chatLogRef.current.scrollHeight;
+    }
+  }, [chatMessages, isInferring]);
 
   const handleAuthError = (error) => {
     if ([401, 403].includes(error.response?.status)) {
@@ -91,6 +237,176 @@ const NotebooksShow = () => {
       })
       .finally(() => {
         setIsDeleting(false);
+      });
+  };
+
+  const openDeleteFileModal = (notebookFile) => {
+    setSelectedNotebookFile(notebookFile);
+    setShowDeleteFileModal(true);
+  };
+
+  const closeDeleteFileModal = () => {
+    if (isDeletingFile) {
+      return;
+    }
+
+    setSelectedNotebookFile(null);
+    setShowDeleteFileModal(false);
+  };
+
+  const handleDeleteFile = () => {
+    if (isDeletingFile || !selectedNotebookFile || !notebook) {
+      return;
+    }
+
+    setIsDeletingFile(true);
+
+    NotebookService.deleteNotebookFile(notebook.id, selectedNotebookFile.id)
+      .then(() => {
+        setShowDeleteFileModal(false);
+        setSelectedNotebookFile(null);
+        loadNotebookFiles();
+        loadNotebook();
+      })
+      .catch((error) => {
+        if (handleAuthError(error)) {
+          return;
+        }
+
+        setFilesErrorMessage(error.response?.data?.message || "Unable to delete notebook file.");
+        setShowDeleteFileModal(false);
+        setSelectedNotebookFile(null);
+      })
+      .finally(() => {
+        setIsDeletingFile(false);
+      });
+  };
+
+  const openFileModal = () => {
+    setNotebookFileForm(emptyNotebookFileForm);
+    setNotebookFileErrors({});
+    setNotebookFileErrorMessage("");
+    setShowFileModal(true);
+  };
+
+  const closeFileModal = () => {
+    if (isUploadingFile) {
+      return;
+    }
+
+    setShowFileModal(false);
+    setNotebookFileForm(emptyNotebookFileForm);
+    setNotebookFileErrors({});
+    setNotebookFileErrorMessage("");
+  };
+
+  const handleNotebookFileFormChange = (event) => {
+    const { name, value } = event.target;
+
+    setNotebookFileForm((currentValues) => {
+      return {
+        ...currentValues,
+        [name]: value
+      };
+    });
+  };
+
+  const handleNotebookFileChange = (event) => {
+    setNotebookFileForm((currentValues) => {
+      return {
+        ...currentValues,
+        file: event.target.files?.[0] || null
+      };
+    });
+  };
+
+  const handleCreateNotebookFile = (event) => {
+    event.preventDefault();
+    if (isUploadingFile) {
+      return;
+    }
+
+    setIsUploadingFile(true);
+    setNotebookFileErrors({});
+    setNotebookFileErrorMessage("");
+
+    NotebookService.createNotebookFile(notebook.id, notebookFileForm)
+      .then(() => {
+        setShowFileModal(false);
+        setNotebookFileForm(emptyNotebookFileForm);
+        loadNotebookFiles();
+      })
+      .catch((error) => {
+        if (handleAuthError(error)) {
+          return;
+        }
+
+        if (error.response?.status === 422) {
+          setNotebookFileErrors(error.response.data);
+          return;
+        }
+
+        setNotebookFileErrorMessage(error.response?.data?.message || "Unable to upload notebook file.");
+      })
+      .finally(() => {
+        setIsUploadingFile(false);
+      });
+  };
+
+  const handlePromptSubmit = (event) => {
+    event.preventDefault();
+
+    const trimmedPrompt = prompt.trim();
+    if (!trimmedPrompt || isInferring || !notebook) {
+      return;
+    }
+
+    const userMessage = {
+      role: "user",
+      content: trimmedPrompt
+    };
+
+    setChatMessages((currentMessages) => {
+      return [...currentMessages, userMessage];
+    });
+    setPrompt("");
+    setChatError("");
+    setIsInferring(true);
+
+    const messages = [
+      ...chatMessages.map((message) => {
+        return {
+          role: message.role === "user" ? "user" : "assistant",
+          content: renderResponse(message.content)
+        };
+      }),
+      {
+        role: "user",
+        content: trimmedPrompt
+      }
+    ];
+
+    NotebookService.inferNotebook(notebook.id, { input: messages, k: Number(retrievalK) || 5 })
+      .then((response) => {
+        setChatMessages((currentMessages) => {
+          return [
+            ...currentMessages,
+            {
+              role: "notebook",
+              content: response.data
+            }
+          ];
+        });
+      })
+      .catch((error) => {
+        if (handleAuthError(error)) {
+          return;
+        }
+
+        setChatError(error.response?.data?.message || "Unable to chat with notebook.");
+      })
+      .finally(() => {
+        setIsInferring(false);
       });
   };
 
@@ -140,12 +456,12 @@ const NotebooksShow = () => {
             <button
               className="btn btn-outline-primary d-inline-flex align-items-center gap-2"
               onClick={() => {
-                setShowConnectorModal(true);
+                setShowConfigModal(true);
               }}
               type="button"
             >
-              <FontAwesomeIcon icon={faPlug} />
-              <span>Connector</span>
+              <FontAwesomeIcon icon={faSliders} />
+              <span>Config</span>
             </button>
             <Link className="btn btn-outline-secondary d-inline-flex align-items-center gap-2" to="/notebooks">
               <FontAwesomeIcon icon={faArrowLeft} />
@@ -155,43 +471,225 @@ const NotebooksShow = () => {
         ]}
       />
 
-      {notebook.status === "pending" ? (
-        <AdminContent title="Processing">
-          <div className="d-flex align-items-center gap-3 py-4">
-            <div className="spinner-border text-primary" role="status" aria-hidden="true" />
-            <div>
-              <div className="fw-semibold">
-                Preparing notebook
-              </div>
-              <div className="text-muted">
-                The system is still processing this notebook.
-              </div>
+      <div className="row g-4 align-items-stretch">
+        <div className="col-12 col-xl-4">
+          <AdminContent
+            title="Files"
+            headerActions={[
+              <button className="btn btn-primary btn-sm d-inline-flex align-items-center gap-2" key="new-file" onClick={openFileModal} type="button">
+                <FontAwesomeIcon icon={faPlus} />
+                <span>New File</span>
+              </button>
+            ]}
+          >
+            <div className="talalm-notebook-files">
+              {isFilesLoading ? (
+                <Loader />
+              ) : (
+                <React.Fragment>
+                  {filesErrorMessage ? (
+                    <div className="alert alert-danger">
+                      {filesErrorMessage}
+                    </div>
+                  ) : null}
+
+                  {!filesErrorMessage && notebookFiles.length === 0 ? (
+                    <div className="talalm-empty-state">
+                      <FontAwesomeIcon icon={faFileLines} />
+                      <span>No files.</span>
+                    </div>
+                  ) : null}
+
+                  {!filesErrorMessage && notebookFiles.map((notebookFile) => {
+                    return (
+                      <div className="talalm-notebook-file" key={notebookFile.id}>
+                        <div className="d-flex align-items-start justify-content-between gap-2">
+                          <div className="min-w-0">
+                            <div className="talalm-notebook-file-name text-break">
+                              {notebookFile.name}
+                            </div>
+                            <div className="talalm-notebook-file-meta text-break">
+                              {notebookFile.filename}
+                            </div>
+                          </div>
+                          <div className="d-inline-flex align-items-center gap-2">
+                            <div className="talalm-notebook-file-status">
+                              {notebookFile.status === "processing" ? (
+                                <span className="talalm-notebook-file-processing" aria-label="Processing file vectors" role="status">
+                                  <span className="spinner-border spinner-border-sm" aria-hidden="true" />
+                                </span>
+                              ) : null}
+                              {statusToLabel(notebookFile.status)}
+                            </div>
+                            <button
+                              aria-label={`Delete ${notebookFile.name}`}
+                              className="btn btn-outline-danger btn-sm talalm-icon-button"
+                              disabled={!DELETABLE_NOTEBOOK_FILE_STATUSES.includes(notebookFile.status)}
+                              onClick={() => {
+                                openDeleteFileModal(notebookFile);
+                              }}
+                              title={
+                                DELETABLE_NOTEBOOK_FILE_STATUSES.includes(notebookFile.status)
+                                  ? "Delete file"
+                                  : "Only pending or active files can be deleted"
+                              }
+                              type="button"
+                            >
+                              <FontAwesomeIcon icon={faTrash} />
+                            </button>
+                          </div>
+                        </div>
+                        <div className="talalm-notebook-file-meta mt-2">
+                          {formatByteSize(notebookFile.byte_size)}
+                          {notebookFile.content_type ? ` · ${notebookFile.content_type}` : ""}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </React.Fragment>
+              )}
             </div>
-          </div>
-        </AdminContent>
-      ) : (
-        <AdminContent title="Notebook">
-          <div className="d-flex align-items-center gap-2 text-muted">
-            <FontAwesomeIcon icon={faClock} />
-            <span>Notebook is ready.</span>
-          </div>
-        </AdminContent>
-      )}
+          </AdminContent>
+        </div>
+
+        <div className="col-12 col-xl-8">
+          <AdminContent title="Chat">
+            <div className="talalm-chat-panel">
+                  <div className="talalm-chat-log" ref={chatLogRef}>
+                    {chatMessages.length === 0 ? (
+                      <div className="talalm-chat-empty text-muted">
+                        Send a prompt to chat with this notebook.
+                      </div>
+                    ) : (
+                      chatMessages.map((message, index) => {
+                        const isUser = message.role === "user";
+
+                        return (
+                          <div className={`talalm-chat-row ${isUser ? "talalm-chat-row-user" : "talalm-chat-row-connector"}`} key={`notebook-chat-message-${index}`}>
+                            <div className="talalm-chat-meta">
+                              {isUser ? "You" : "Notebook"}
+                            </div>
+                            <div className="talalm-chat-bubble">
+                              <ReactMarkdown>
+                                {renderResponse(message.content)}
+                              </ReactMarkdown>
+                              {!isUser && message.content?.details ? (
+                                <div className="talalm-chat-stats">
+                                  <div className="talalm-chat-stat">
+                                    <span>Prompt</span>
+                                    <strong>{renderMetric(message.content.details.prompt_tokens, formatNumber)}</strong>
+                                  </div>
+                                  <div className="talalm-chat-stat">
+                                    <span>Completion</span>
+                                    <strong>{renderMetric(message.content.details.completion_tokens, formatNumber)}</strong>
+                                  </div>
+                                  <div className="talalm-chat-stat">
+                                    <span>Total</span>
+                                    <strong>{renderMetric(message.content.details.total_tokens, formatNumber)}</strong>
+                                  </div>
+                                  <div className="talalm-chat-stat">
+                                    <span>Elapsed</span>
+                                    <strong>{renderMetric(message.content.details.elapsed_seconds, formatSeconds)}</strong>
+                                  </div>
+                                  <div className="talalm-chat-stat">
+                                    <span>Tokens/sec</span>
+                                    <strong>{renderMetric(message.content.details.tokens_per_second, formatTokensPerSecond)}</strong>
+                                  </div>
+                                  <div className="talalm-chat-stat">
+                                    <span>Finish</span>
+                                    <strong>{renderMetric(message.content.details.finish_reason)}</strong>
+                                  </div>
+                                </div>
+                              ) : null}
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                    {isInferring ? (
+                      <div className="talalm-chat-row talalm-chat-row-connector">
+                        <div className="talalm-chat-meta">Notebook</div>
+                        <div className="talalm-chat-bubble talalm-chat-bubble-loading">
+                          <span className="talalm-chat-loader" aria-label="Thinking" role="status">
+                            <span />
+                            <span />
+                            <span />
+                          </span>
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+
+                  {chatError ? (
+                    <div className="alert alert-danger mt-3 mb-0">
+                      {chatError}
+                    </div>
+                  ) : null}
+
+                  <form className="talalm-chat-composer mt-3" onSubmit={handlePromptSubmit}>
+                    <div className="talalm-chat-retrieval">
+                      <label className="form-label mb-0" htmlFor="notebook-retrieval-k">
+                        Context chunks
+                      </label>
+                      <input
+                        className="form-control form-control-sm"
+                        disabled={isInferring}
+                        id="notebook-retrieval-k"
+                        max="500"
+                        min="1"
+                        onChange={(event) => {
+                          setRetrievalK(event.target.value);
+                        }}
+                        step="1"
+                        type="number"
+                        value={retrievalK}
+                      />
+                    </div>
+                    <textarea
+                      className="form-control"
+                      disabled={isInferring}
+                      onChange={(event) => {
+                        setPrompt(event.target.value);
+                      }}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" && !event.shiftKey) {
+                          handlePromptSubmit(event);
+                        }
+                      }}
+                      placeholder="Write a prompt"
+                      rows="3"
+                      value={prompt}
+                    />
+                    <button className="btn btn-primary talalm-chat-send-button d-inline-flex align-items-center gap-2" disabled={isInferring || !prompt.trim()} type="submit">
+                      <FontAwesomeIcon icon={faPaperPlane} />
+                      <span>{isInferring ? "Sending..." : "Send"}</span>
+                    </button>
+                  </form>
+            </div>
+          </AdminContent>
+        </div>
+      </div>
 
       <Modal
-        show={showConnectorModal}
+        show={showConfigModal}
         onHide={() => {
-          setShowConnectorModal(false);
+          setShowConfigModal(false);
         }}
         size="lg"
       >
         <Modal.Header closeButton>
           <Modal.Title>
-            Connector Details
+            Notebook Config
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <div className="row g-3">
+            <div className="col-12">
+              <div className="talalm-detail-block">
+                <div className="talalm-label mb-1">System Prompt</div>
+                <div className="talalm-detail-value text-break">{renderValue(notebook.system_prompt)}</div>
+              </div>
+            </div>
             <div className="col-12 col-lg-6">
               <div className="talalm-detail-block">
                 <div className="talalm-label mb-1">Code</div>
@@ -254,7 +752,7 @@ const NotebooksShow = () => {
           <Button
             className="d-inline-flex align-items-center gap-2"
             onClick={() => {
-              setShowConnectorModal(false);
+              setShowConfigModal(false);
             }}
             type="button"
             variant="secondary"
@@ -264,6 +762,107 @@ const NotebooksShow = () => {
           </Button>
         </Modal.Footer>
       </Modal>
+
+      <Modal
+        backdrop={isUploadingFile ? "static" : true}
+        keyboard={!isUploadingFile}
+        show={showFileModal}
+        onHide={closeFileModal}
+      >
+        <form onSubmit={handleCreateNotebookFile}>
+          <Modal.Header closeButton={!isUploadingFile}>
+            <Modal.Title>New File</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <div className="row g-3">
+              {notebookFileErrorMessage ? (
+                <div className="col-12">
+                  <div className="alert alert-danger mb-0">
+                    {notebookFileErrorMessage}
+                  </div>
+                </div>
+              ) : null}
+
+              {isUploadingFile ? (
+                <div className="col-12">
+                  <div className="alert alert-info d-flex align-items-center gap-2 mb-0" role="status">
+                    <span className="spinner-border spinner-border-sm" aria-hidden="true" />
+                    <span>Uploading file to notebook...</span>
+                  </div>
+                </div>
+              ) : null}
+
+              <div className="col-12">
+                <label className="form-label" htmlFor="notebook-file-name">
+                  Name
+                </label>
+                <input
+                  className={getInputClassName(notebookFileErrors, "name")}
+                  disabled={isUploadingFile}
+                  id="notebook-file-name"
+                  name="name"
+                  onChange={handleNotebookFileFormChange}
+                  value={notebookFileForm.name}
+                />
+                {renderInputErrors(notebookFileErrors, "name")}
+              </div>
+
+              <div className="col-12">
+                <div className="d-flex align-items-center justify-content-between gap-2">
+                  <label className="form-label" htmlFor="notebook-file-upload">
+                    File
+                  </label>
+                  <span className="form-text mt-0">Max 5 MB</span>
+                </div>
+                <input
+                  accept=".docx,.xlsx,.txt,.pdf,.pptx"
+                  className={getInputClassName(notebookFileErrors, "file")}
+                  disabled={isUploadingFile}
+                  id="notebook-file-upload"
+                  onChange={handleNotebookFileChange}
+                  type="file"
+                />
+                {renderInputErrors(notebookFileErrors, "file")}
+              </div>
+            </div>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button
+              className="d-inline-flex align-items-center gap-2"
+              disabled={isUploadingFile || !notebookFileForm.name.trim() || !notebookFileForm.file}
+              type="submit"
+              variant="primary"
+            >
+              {isUploadingFile ? (
+                <span className="spinner-border spinner-border-sm" aria-hidden="true" />
+              ) : (
+                <FontAwesomeIcon icon={faPlus} />
+              )}
+              <span>{isUploadingFile ? "Uploading..." : "Create File"}</span>
+            </Button>
+            <Button
+              className="d-inline-flex align-items-center gap-2"
+              disabled={isUploadingFile}
+              onClick={closeFileModal}
+              type="button"
+              variant="secondary"
+            >
+              <FontAwesomeIcon icon={faXmark} />
+              <span>Close</span>
+            </Button>
+          </Modal.Footer>
+        </form>
+      </Modal>
+
+      <ConfirmationModal
+        show={showDeleteFileModal}
+        isLoading={isDeletingFile}
+        header="Delete File"
+        content={`Delete ${selectedNotebookFile?.name || "this file"}? This will delete the file and its embeddings.`}
+        loadingContent="Deleting file and associated assets..."
+        onPrimaryClicked={handleDeleteFile}
+        onSecondaryClicked={closeDeleteFileModal}
+      />
 
       <ConfirmationModal
         show={showDeleteModal}

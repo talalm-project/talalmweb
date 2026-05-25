@@ -32,6 +32,10 @@ export const statusToLabel = (status) => {
   const badgeClassNames = {
     active: "text-bg-success",
     pending: "text-bg-secondary",
+    uploaded: "text-bg-info",
+    uploading: "text-bg-info",
+    processing: "talalm-badge-processing",
+    failed: "text-bg-danger",
     inactive: "text-bg-warning",
     deleted: "text-bg-danger",
     done: "text-bg-success"

@@ -14,7 +14,12 @@ export default ConfirmationModal = (props) => {
       </Modal.Header>
       <Modal.Body>
         {props.isLoading &&
-          <Loader/>
+          <div className="d-flex flex-column align-items-center gap-3 text-center" role="status">
+            <Loader/>
+            <div className="fw-semibold">
+              {props.loadingContent || "Processing..."}
+            </div>
+          </div>
         }
         {!props.isLoading &&
           <p>

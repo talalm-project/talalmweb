@@ -15,6 +15,8 @@ import NotebookService from "../services/NotebookService";
 const NOTEBOOK_STATUSES = [
   { value: "", label: "All statuses" },
   { value: "pending", label: "Pending" },
+  { value: "processing", label: "Processing" },
+  { value: "failed", label: "Failed" },
   { value: "active", label: "Active" }
 ];
 
@@ -300,7 +302,8 @@ const NotebooksIndex = () => {
                 <thead className="table-light">
                   <tr>
                     <th>Title</th>
-                    <th>Status</th>
+                    <th className="text-center">Files</th>
+                    <th className="text-center">Status</th>
                     <th className="text-center">Action</th>
                   </tr>
                 </thead>
@@ -315,7 +318,8 @@ const NotebooksIndex = () => {
                               <span>{notebook.title}</span>
                             </span>
                           </td>
-                          <td>{statusToLabel(notebook.status)}</td>
+                          <td className="text-center">{notebook.files_count || 0}</td>
+                          <td className="text-center">{statusToLabel(notebook.status)}</td>
                           <td className="text-center">
                             <Link className="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-2" to={`/notebooks/${notebook.id}`}>
                               <FontAwesomeIcon icon={faEye} />
@@ -327,7 +331,7 @@ const NotebooksIndex = () => {
                     })
                   ) : (
                     <tr>
-                      <td className="text-center text-muted py-4" colSpan="3">
+                      <td className="text-center text-muted py-4" colSpan="4">
                         No notebooks found.
                       </td>
                     </tr>
@@ -398,6 +402,7 @@ const NotebooksIndex = () => {
                   </select>
                   {renderInputErrors(formErrors, "connector_id")}
                 </div>
+
               </div>
             )}
           </Modal.Body>
