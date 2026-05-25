@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -21,30 +21,16 @@ import Loader from "./commons/Loader";
 import PageHeader from "./commons/PageHeader";
 import { statusToLabel } from "./helpers/AppHelper";
 import { destroySession } from "./services/AuthService";
-import ConnectorService from "./services/ConnectorService";
-import NotebookService from "./services/NotebookService";
-
-const POLLED_FILE_STATUSES = ["pending", "uploading", "processing"];
+import DashboardService from "./services/DashboardService";
 
 const connectionTypeLabels = {
   local: "Local",
   openai: "OpenAI"
 };
 
-const safeRecords = (response) => {
-  return response?.data?.records || [];
-};
-
 const metadataFor = (connector) => {
   const metadata = connector?.data?.metadata;
   return metadata && typeof metadata === "object" ? metadata : {};
-};
-
-const connectorById = (connectors) => {
-  return connectors.reduce((records, connector) => {
-    records[connector.id] = connector;
-    return records;
-  }, {});
 };
 
 const formatNumber = (value) => {
@@ -83,42 +69,27 @@ const formatByteSize = (value) => {
   return `${size.toFixed(unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
 };
 
-const statusCount = (records, status) => {
-  return records.filter((record) => record.status === status).length;
-};
-
-const filesForNotebook = (files, notebookId) => {
-  return files.filter((file) => file.notebook_id === notebookId);
-};
-
-const fileStatusSummary = (files) => {
-  return {
-    active: statusCount(files, "active"),
-    pending: files.filter((file) => POLLED_FILE_STATUSES.includes(file.status)).length,
-    failed: statusCount(files, "failed")
-  };
-};
-
-const notebookHealth = (notebook, files) => {
-  if (notebook.status === "failed" || statusCount(files, "failed") > 0) {
-    return "failed";
-  }
-
-  if (notebook.status === "processing" || files.some((file) => POLLED_FILE_STATUSES.includes(file.status))) {
-    return "processing";
-  }
-
-  if (notebook.status === "active" && files.length > 0 && files.every((file) => file.status === "active")) {
-    return "active";
-  }
-
-  return notebook.status || "pending";
+const emptyDashboard = {
+  summary: {
+    notebooks_count: 0,
+    active_notebooks_count: 0,
+    connectors_count: 0,
+    local_connectors_count: 0,
+    openai_connectors_count: 0,
+    active_files_count: 0,
+    queued_files_count: 0,
+    failed_files_count: 0,
+    notebooks_without_files_count: 0,
+    total_file_bytes: 0,
+    needs_attention_count: 0
+  },
+  notebooks: [],
+  connectors: [],
+  attention_files: []
 };
 
 const Dashboard = () => {
-  const [connectors, setConnectors] = useState([]);
-  const [notebooks, setNotebooks] = useState([]);
-  const [notebookFiles, setNotebookFiles] = useState([]);
+  const [dashboard, setDashboard] = useState(emptyDashboard);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -143,35 +114,15 @@ const Dashboard = () => {
 
     setErrorMessage("");
 
-    Promise.all([
-      ConnectorService.fetchConnectors(),
-      NotebookService.fetchNotebooks({ page: 1 })
-    ])
-      .then(([connectorsResponse, notebooksResponse]) => {
-        const connectorRecords = safeRecords(connectorsResponse);
-        const firstNotebookRecords = safeRecords(notebooksResponse);
-        const totalPages = notebooksResponse.data.total_pages || 1;
-        const remainingNotebookPages = [];
-
-        for (let page = 2; page <= totalPages; page += 1) {
-          remainingNotebookPages.push(NotebookService.fetchNotebooks({ page }));
-        }
-
-        return Promise.all(remainingNotebookPages).then((pageResponses) => {
-          const notebookRecords = [
-            ...firstNotebookRecords,
-            ...pageResponses.flatMap((response) => safeRecords(response))
-          ];
-
-          return Promise.all(
-            notebookRecords
-              .filter((notebook) => (notebook.files_count || 0) > 0)
-              .map((notebook) => NotebookService.fetchNotebookFiles(notebook.id).then((response) => safeRecords(response)))
-          ).then((filesResponses) => {
-            setConnectors(connectorRecords);
-            setNotebooks(notebookRecords);
-            setNotebookFiles(filesResponses.flat());
-          });
+    DashboardService.fetchDashboard()
+      .then((response) => {
+        setDashboard({
+          ...emptyDashboard,
+          ...response.data,
+          summary: {
+            ...emptyDashboard.summary,
+            ...(response.data.summary || {})
+          }
         });
       })
       .catch((error) => {
@@ -192,7 +143,7 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
-    const shouldPoll = notebookFiles.some((file) => POLLED_FILE_STATUSES.includes(file.status));
+    const shouldPoll = dashboard.summary.queued_files_count > 0;
     if (!shouldPoll) {
       return undefined;
     }
@@ -204,76 +155,25 @@ const Dashboard = () => {
     return () => {
       window.clearInterval(intervalId);
     };
-  }, [notebookFiles]);
+  }, [dashboard.summary.queued_files_count]);
 
-  const dashboard = useMemo(() => {
-    const connectorsById = connectorById(connectors);
-    const activeFiles = statusCount(notebookFiles, "active");
-    const failedFiles = statusCount(notebookFiles, "failed");
-    const queuedFiles = notebookFiles.filter((file) => POLLED_FILE_STATUSES.includes(file.status)).length;
-    const notebooksWithoutFiles = notebooks.filter((notebook) => (notebook.files_count || 0) === 0).length;
-    const activeNotebooks = notebooks.filter((notebook) => notebookHealth(notebook, filesForNotebook(notebookFiles, notebook.id)) === "active").length;
-    const totalBytes = notebookFiles.reduce((sum, file) => sum + Number(file.byte_size || 0), 0);
-    const localConnectors = connectors.filter((connector) => connector.connection_type === "local").length;
-    const openaiConnectors = connectors.filter((connector) => connector.connection_type === "openai").length;
-
-    const notebookRows = notebooks.map((notebook) => {
-      const files = filesForNotebook(notebookFiles, notebook.id);
-      const connector = connectorsById[notebook.connector_id];
-      const metadata = metadataFor(connector);
-      return {
-        notebook,
-        files,
-        connector,
-        metadata,
-        summary: fileStatusSummary(files),
-        health: notebookHealth(notebook, files)
-      };
-    });
-
-    const connectorRows = connectors.map((connector) => {
-      const metadata = metadataFor(connector);
-      return {
-        connector,
-        metadata,
-        notebooksCount: notebooks.filter((notebook) => notebook.connector_id === connector.id).length
-      };
-    });
-
-    const attentionFiles = notebookFiles
-      .filter((file) => file.status === "failed" || POLLED_FILE_STATUSES.includes(file.status))
-      .slice(0, 8);
-
-    return {
-      activeFiles,
-      activeNotebooks,
-      attentionFiles,
-      connectorRows,
-      failedFiles,
-      localConnectors,
-      notebookRows,
-      notebooksWithoutFiles,
-      openaiConnectors,
-      queuedFiles,
-      totalBytes
-    };
-  }, [connectors, notebooks, notebookFiles]);
+  const summary = dashboard.summary;
 
   const readinessIssues = [
     {
       label: "Files waiting for embeddings",
-      value: dashboard.queuedFiles,
-      tone: dashboard.queuedFiles > 0 ? "warning" : "success"
+      value: summary.queued_files_count,
+      tone: summary.queued_files_count > 0 ? "warning" : "success"
     },
     {
       label: "Failed files",
-      value: dashboard.failedFiles,
-      tone: dashboard.failedFiles > 0 ? "danger" : "success"
+      value: summary.failed_files_count,
+      tone: summary.failed_files_count > 0 ? "danger" : "success"
     },
     {
       label: "Notebooks without files",
-      value: dashboard.notebooksWithoutFiles,
-      tone: dashboard.notebooksWithoutFiles > 0 ? "warning" : "success"
+      value: summary.notebooks_without_files_count,
+      tone: summary.notebooks_without_files_count > 0 ? "warning" : "success"
     }
   ];
 
@@ -316,8 +216,8 @@ const Dashboard = () => {
                 <div className="d-flex justify-content-between align-items-start">
                   <div>
                     <p className="talalm-stat-label">Notebooks</p>
-                    <h2 className="talalm-stat-value">{formatNumber(notebooks.length)}</h2>
-                    <p className="mb-0 talalm-muted small">{formatNumber(dashboard.activeNotebooks)} fully indexed</p>
+                    <h2 className="talalm-stat-value">{formatNumber(summary.notebooks_count)}</h2>
+                    <p className="mb-0 talalm-muted small">{formatNumber(summary.active_notebooks_count)} fully indexed</p>
                   </div>
                   <span className="badge talalm-badge-icon text-bg-primary">
                     <FontAwesomeIcon icon={faBook} />
@@ -331,8 +231,8 @@ const Dashboard = () => {
                 <div className="d-flex justify-content-between align-items-start">
                   <div>
                     <p className="talalm-stat-label">Indexed Files</p>
-                    <h2 className="talalm-stat-value">{formatNumber(dashboard.activeFiles)}</h2>
-                    <p className="mb-0 talalm-muted small">{formatByteSize(dashboard.totalBytes)} monitored</p>
+                    <h2 className="talalm-stat-value">{formatNumber(summary.active_files_count)}</h2>
+                    <p className="mb-0 talalm-muted small">{formatByteSize(summary.total_file_bytes)} monitored</p>
                   </div>
                   <span className="badge talalm-badge-icon text-bg-success">
                     <FontAwesomeIcon icon={faFileCircleCheck} />
@@ -346,10 +246,10 @@ const Dashboard = () => {
                 <div className="d-flex justify-content-between align-items-start">
                   <div>
                     <p className="talalm-stat-label">Needs Attention</p>
-                    <h2 className="talalm-stat-value">{formatNumber(dashboard.queuedFiles + dashboard.failedFiles + dashboard.notebooksWithoutFiles)}</h2>
+                    <h2 className="talalm-stat-value">{formatNumber(summary.needs_attention_count)}</h2>
                     <p className="mb-0 talalm-muted small">Queue, failures, and empty notebooks</p>
                   </div>
-                  <span className={`badge talalm-badge-icon ${dashboard.failedFiles > 0 ? "text-bg-danger" : "text-bg-warning"}`}>
+                  <span className={`badge talalm-badge-icon ${summary.failed_files_count > 0 ? "text-bg-danger" : "text-bg-warning"}`}>
                     <FontAwesomeIcon icon={faTriangleExclamation} />
                   </span>
                 </div>
@@ -361,8 +261,8 @@ const Dashboard = () => {
                 <div className="d-flex justify-content-between align-items-start">
                   <div>
                     <p className="talalm-stat-label">Connectors</p>
-                    <h2 className="talalm-stat-value">{formatNumber(connectors.length)}</h2>
-                    <p className="mb-0 talalm-muted small">{dashboard.localConnectors} local, {dashboard.openaiConnectors} OpenAI</p>
+                    <h2 className="talalm-stat-value">{formatNumber(summary.connectors_count)}</h2>
+                    <p className="mb-0 talalm-muted small">{summary.local_connectors_count} local, {summary.openai_connectors_count} OpenAI</p>
                   </div>
                   <span className="badge talalm-badge-icon text-bg-info">
                     <FontAwesomeIcon icon={faServer} />
@@ -394,8 +294,8 @@ const Dashboard = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {dashboard.notebookRows.length > 0 ? (
-                        dashboard.notebookRows.map((row) => {
+                      {dashboard.notebooks.length > 0 ? (
+                        dashboard.notebooks.map((row) => {
                           return (
                             <tr key={row.notebook.id}>
                               <td>
@@ -412,9 +312,9 @@ const Dashboard = () => {
                               </td>
                               <td>
                                 <div className="d-flex flex-wrap gap-2">
-                                  <span className="badge text-bg-success">{row.summary.active} active</span>
-                                  <span className="badge text-bg-warning">{row.summary.pending} queued</span>
-                                  <span className="badge text-bg-danger">{row.summary.failed} failed</span>
+                                  <span className="badge text-bg-success">{row.file_summary.active} active</span>
+                                  <span className="badge text-bg-warning">{row.file_summary.queued} queued</span>
+                                  <span className="badge text-bg-danger">{row.file_summary.failed} failed</span>
                                 </div>
                               </td>
                               <td>{statusToLabel(row.health)}</td>
@@ -490,10 +390,11 @@ const Dashboard = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {dashboard.connectorRows.length > 0 ? (
-                        dashboard.connectorRows.map((row) => {
-                          const inference = row.metadata.inference || {};
-                          const embeddings = row.metadata.embeddings || {};
+                      {dashboard.connectors.length > 0 ? (
+                        dashboard.connectors.map((row) => {
+                          const metadata = metadataFor(row.connector);
+                          const inference = metadata.inference || {};
+                          const embeddings = metadata.embeddings || {};
                           const chunking = embeddings.chunking || {};
                           return (
                             <tr key={row.connector.id}>
@@ -513,7 +414,7 @@ const Dashboard = () => {
                                 <div>{formatConfiguredNumber(chunking.chunk_size, " chars")}</div>
                                 <div className="talalm-muted small">{formatConfiguredNumber(chunking.chunk_overlap)} overlap</div>
                               </td>
-                              <td>{formatNumber(row.notebooksCount)} notebooks</td>
+                              <td>{formatNumber(row.notebooks_count)} notebooks</td>
                             </tr>
                           );
                         })
@@ -549,9 +450,9 @@ const Dashboard = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {dashboard.attentionFiles.length > 0 ? (
-                        dashboard.attentionFiles.map((file) => {
-                          const notebook = notebooks.find((record) => record.id === file.notebook_id);
+                      {dashboard.attention_files.length > 0 ? (
+                        dashboard.attention_files.map((file) => {
+                          const notebook = file.notebook;
                           return (
                             <tr key={file.id}>
                               <td>
