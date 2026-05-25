@@ -34,7 +34,7 @@ export default Login = () => {
       <div className="card talalm-panel login-form">
         <div className="card-body p-4">
           <h1 className="h3 mb-3 text-center mt-2 login-title">
-            Sign In
+            TALA LM
           </h1>
           <hr/>
           <div className="form-group p-2">
