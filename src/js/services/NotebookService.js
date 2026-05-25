@@ -37,6 +37,13 @@ const NotebookService = {
     });
   },
 
+  downloadNotebookFile(notebookId, notebookFileId) {
+    return axios.get(`${API_BASE_URL}/notebooks/${notebookId}/notebook_files/${notebookFileId}/download`, {
+      headers: buildHeaders(),
+      responseType: "blob"
+    });
+  },
+
   createNotebook(args) {
     return axios.post(`${API_BASE_URL}/notebooks`, args, {
       headers: buildHeaders()

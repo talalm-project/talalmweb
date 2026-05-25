@@ -304,6 +304,47 @@ body[data-theme="light"] .talalm-badge-processing {
   min-height: 0;
 }
 
+.talalm-notebook-files-column {
+  transition: width 0.18s ease, flex-basis 0.18s ease;
+}
+
+.talalm-notebook-files-column.is-collapsed {
+  flex: 0 0 4.25rem;
+  width: 4.25rem;
+}
+
+.talalm-notebook-files-rail {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.85rem;
+  min-height: 0;
+  padding: 0.65rem 0.45rem;
+  border: 1px solid var(--talalm-border);
+  background: var(--talalm-surface);
+  color: var(--talalm-text-muted);
+}
+
+.talalm-notebook-files-rail > svg {
+  color: var(--talalm-primary);
+  font-size: 1rem;
+}
+
+.talalm-notebook-files-rail > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  min-height: 2rem;
+  border: 1px solid var(--talalm-border);
+  background: var(--talalm-surface-high);
+  color: var(--talalm-text-strong);
+  font-family: $font-body;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
 .talalm-notebook-layout .talalm-panel {
   display: flex;
   flex: 1 1 auto;
@@ -785,6 +826,10 @@ body[data-theme="light"] .talalm-badge-processing {
   gap: 0.65rem;
 }
 
+.talalm-chat-retrieval .talalm-range-control {
+  width: min(100%, 26rem);
+}
+
 .talalm-chat-retrieval .form-control {
   width: 5rem;
 }
@@ -1015,6 +1060,17 @@ label {
   .talalm-connector-show {
     height: calc(100vh - 7rem);
     min-height: 30rem;
+  }
+
+  .talalm-notebook-files-column.is-collapsed {
+    flex: 0 0 auto;
+    width: 100%;
+  }
+
+  .talalm-notebook-files-rail {
+    flex-direction: row;
+    justify-content: flex-start;
+    min-height: auto;
   }
 
   .talalm-chat-log {

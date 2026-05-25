@@ -4,7 +4,7 @@ import remarkGfm from "remark-gfm";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Button, Modal } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowLeft, faFileLines, faPaperPlane, faPlug, faPlus, faSliders, faTrash, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { faArrowLeft, faChevronLeft, faChevronRight, faDownload, faFileLines, faPaperPlane, faPlug, faPlus, faSliders, faTrash, faXmark } from "@fortawesome/free-solid-svg-icons";
 import AdminContent from "../commons/AdminContent";
 import ConfirmationModal from "../commons/ConfirmationModal";
 import Loader from "../commons/Loader";
@@ -25,6 +25,30 @@ const emptyNotebookFileForm = {
 
 const POLLED_NOTEBOOK_FILE_STATUSES = ["pending", "uploading", "processing"];
 const DELETABLE_NOTEBOOK_FILE_STATUSES = ["pending", "active"];
+const RETRIEVAL_K_MIN = 1;
+const RETRIEVAL_K_MAX = 500;
+const RETRIEVAL_K_DEFAULT = 5;
+
+const parseDownloadFilename = (contentDisposition, fallback) => {
+  const encodedMatch = contentDisposition?.match(/filename\*=UTF-8''([^;]+)/i);
+  if (encodedMatch) {
+    return decodeURIComponent(encodedMatch[1]);
+  }
+
+  const filenameMatch = contentDisposition?.match(/filename="?([^";]+)"?/i);
+  return filenameMatch?.[1] || fallback || "notebook-file";
+};
+
+const saveBlob = (blob, filename) => {
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+};
 
 const renderValue = (value) => {
   if (value === null || value === undefined || value === "") {
@@ -104,6 +128,15 @@ const formatTokensPerSecond = (value) => {
   return `${Number(value).toFixed(2)}/s`;
 };
 
+const normalizedRetrievalK = (value) => {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) {
+    return RETRIEVAL_K_DEFAULT;
+  }
+
+  return Math.min(RETRIEVAL_K_MAX, Math.max(RETRIEVAL_K_MIN, numericValue));
+};
+
 const renderSources = (sources = []) => {
   if (!Array.isArray(sources) || sources.length === 0) {
     return null;
@@ -156,6 +189,8 @@ const NotebooksShow = () => {
   const [showFileModal, setShowFileModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeletingFile, setIsDeletingFile] = useState(false);
+  const [downloadingFileIds, setDownloadingFileIds] = useState([]);
+  const [isFilesPanelCollapsed, setIsFilesPanelCollapsed] = useState(false);
   const [selectedNotebookFile, setSelectedNotebookFile] = useState(null);
   const [isUploadingFile, setIsUploadingFile] = useState(false);
   const [notebookFileForm, setNotebookFileForm] = useState(emptyNotebookFileForm);
@@ -319,6 +354,34 @@ const NotebooksShow = () => {
       });
   };
 
+  const handleDownloadFile = (notebookFile) => {
+    if (!notebook || downloadingFileIds.includes(notebookFile.id)) {
+      return;
+    }
+
+    setDownloadingFileIds((currentIds) => {
+      return [...currentIds, notebookFile.id];
+    });
+
+    NotebookService.downloadNotebookFile(notebook.id, notebookFile.id)
+      .then((response) => {
+        const filename = parseDownloadFilename(response.headers["content-disposition"], notebookFile.filename || notebookFile.name);
+        saveBlob(response.data, filename);
+      })
+      .catch((error) => {
+        if (handleAuthError(error)) {
+          return;
+        }
+
+        setFilesErrorMessage(error.response?.data?.message || "Unable to download notebook file.");
+      })
+      .finally(() => {
+        setDownloadingFileIds((currentIds) => {
+          return currentIds.filter((fileId) => fileId !== notebookFile.id);
+        });
+      });
+  };
+
   const openFileModal = () => {
     setNotebookFileForm(emptyNotebookFileForm);
     setNotebookFileErrors({});
@@ -423,7 +486,7 @@ const NotebooksShow = () => {
       }
     ];
 
-    NotebookService.inferNotebook(notebook.id, { input: messages, k: Number(retrievalK) || 5 })
+    NotebookService.inferNotebook(notebook.id, { input: messages, k: normalizedRetrievalK(retrievalK) })
       .then((response) => {
         setChatMessages((currentMessages) => {
           return [
@@ -508,88 +571,130 @@ const NotebooksShow = () => {
         ]}
       />
 
-      <div className="row g-4 align-items-stretch talalm-notebook-layout">
-        <div className="col-12 col-xl-4">
-          <AdminContent
-            title="Files"
-            headerActions={[
-              <button className="btn btn-primary btn-sm d-inline-flex align-items-center gap-2" key="new-file" onClick={openFileModal} type="button">
-                <FontAwesomeIcon icon={faPlus} />
-                <span>New File</span>
+      <div className={`row g-4 align-items-stretch talalm-notebook-layout${isFilesPanelCollapsed ? " talalm-notebook-layout-files-collapsed" : ""}`}>
+        <div className={isFilesPanelCollapsed ? "col-12 col-xl-auto talalm-notebook-files-column is-collapsed" : "col-12 col-xl-4 talalm-notebook-files-column"}>
+          {isFilesPanelCollapsed ? (
+            <div className="talalm-notebook-files-rail">
+              <button
+                aria-label="Expand files panel"
+                className="btn btn-outline-secondary btn-sm talalm-icon-button"
+                onClick={() => {
+                  setIsFilesPanelCollapsed(false);
+                }}
+                title="Expand files"
+                type="button"
+              >
+                <FontAwesomeIcon icon={faChevronRight} />
               </button>
-            ]}
-          >
-            <div className="talalm-notebook-files">
-              {isFilesLoading ? (
-                <Loader />
-              ) : (
-                <React.Fragment>
-                  {filesErrorMessage ? (
-                    <div className="alert alert-danger">
-                      {filesErrorMessage}
-                    </div>
-                  ) : null}
-
-                  {!filesErrorMessage && notebookFiles.length === 0 ? (
-                    <div className="talalm-empty-state">
-                      <FontAwesomeIcon icon={faFileLines} />
-                      <span>No files.</span>
-                    </div>
-                  ) : null}
-
-                  {!filesErrorMessage && notebookFiles.map((notebookFile) => {
-                    return (
-                      <div className="talalm-notebook-file" key={notebookFile.id}>
-                        <div className="d-flex align-items-start justify-content-between gap-2">
-                          <div className="min-w-0">
-                            <div className="talalm-notebook-file-name text-break">
-                              {notebookFile.name}
-                            </div>
-                            <div className="talalm-notebook-file-meta text-break">
-                              {notebookFile.filename}
-                            </div>
-                          </div>
-                          <div className="d-inline-flex align-items-center gap-2">
-                            <div className="talalm-notebook-file-status">
-                              {notebookFile.status === "processing" ? (
-                                <span className="talalm-notebook-file-processing" aria-label="Processing file vectors" role="status">
-                                  <span className="spinner-border spinner-border-sm" aria-hidden="true" />
-                                </span>
-                              ) : null}
-                              {statusToLabel(notebookFile.status)}
-                            </div>
-                            <button
-                              aria-label={`Delete ${notebookFile.name}`}
-                              className="btn btn-outline-danger btn-sm talalm-icon-button"
-                              disabled={!DELETABLE_NOTEBOOK_FILE_STATUSES.includes(notebookFile.status)}
-                              onClick={() => {
-                                openDeleteFileModal(notebookFile);
-                              }}
-                              title={
-                                DELETABLE_NOTEBOOK_FILE_STATUSES.includes(notebookFile.status)
-                                  ? "Delete file"
-                                  : "Only pending or active files can be deleted"
-                              }
-                              type="button"
-                            >
-                              <FontAwesomeIcon icon={faTrash} />
-                            </button>
-                          </div>
-                        </div>
-                        <div className="talalm-notebook-file-meta mt-2">
-                          {formatByteSize(notebookFile.byte_size)}
-                          {notebookFile.content_type ? ` · ${notebookFile.content_type}` : ""}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </React.Fragment>
-              )}
+              <FontAwesomeIcon icon={faFileLines} />
+              <span>{notebookFiles.length}</span>
             </div>
-          </AdminContent>
+          ) : (
+            <AdminContent
+              title="Files"
+              headerActions={[
+                <button
+                  aria-label="Collapse files panel"
+                  className="btn btn-outline-secondary btn-sm talalm-icon-button"
+                  key="collapse-files"
+                  onClick={() => {
+                    setIsFilesPanelCollapsed(true);
+                  }}
+                  title="Collapse files"
+                  type="button"
+                >
+                  <FontAwesomeIcon icon={faChevronLeft} />
+                </button>,
+                <button className="btn btn-primary btn-sm d-inline-flex align-items-center gap-2" key="new-file" onClick={openFileModal} type="button">
+                  <FontAwesomeIcon icon={faPlus} />
+                  <span>New File</span>
+                </button>
+              ]}
+            >
+              <div className="talalm-notebook-files">
+                {isFilesLoading ? (
+                  <Loader />
+                ) : (
+                  <React.Fragment>
+                    {filesErrorMessage ? (
+                      <div className="alert alert-danger">
+                        {filesErrorMessage}
+                      </div>
+                    ) : null}
+
+                    {!filesErrorMessage && notebookFiles.length === 0 ? (
+                      <div className="talalm-empty-state">
+                        <FontAwesomeIcon icon={faFileLines} />
+                        <span>No files.</span>
+                      </div>
+                    ) : null}
+
+                    {!filesErrorMessage && notebookFiles.map((notebookFile) => {
+                      return (
+                        <div className="talalm-notebook-file" key={notebookFile.id}>
+                          <div className="d-flex align-items-start justify-content-between gap-2">
+                            <div className="min-w-0">
+                              <div className="talalm-notebook-file-name text-break">
+                                {notebookFile.name}
+                              </div>
+                              <div className="talalm-notebook-file-meta text-break">
+                                {notebookFile.filename}
+                              </div>
+                            </div>
+                            <div className="d-inline-flex align-items-center gap-2">
+                              <div className="talalm-notebook-file-status">
+                                {notebookFile.status === "processing" ? (
+                                  <span className="talalm-notebook-file-processing" aria-label="Processing file vectors" role="status">
+                                    <span className="spinner-border spinner-border-sm" aria-hidden="true" />
+                                  </span>
+                                ) : null}
+                                {statusToLabel(notebookFile.status)}
+                              </div>
+                              <button
+                                aria-label={`Download ${notebookFile.name}`}
+                                className="btn btn-outline-primary btn-sm talalm-icon-button"
+                                disabled={downloadingFileIds.includes(notebookFile.id)}
+                                onClick={() => {
+                                  handleDownloadFile(notebookFile);
+                                }}
+                                title={downloadingFileIds.includes(notebookFile.id) ? "Downloading file" : "Download file"}
+                                type="button"
+                              >
+                                <FontAwesomeIcon icon={faDownload} />
+                              </button>
+                              <button
+                                aria-label={`Delete ${notebookFile.name}`}
+                                className="btn btn-outline-danger btn-sm talalm-icon-button"
+                                disabled={!DELETABLE_NOTEBOOK_FILE_STATUSES.includes(notebookFile.status)}
+                                onClick={() => {
+                                  openDeleteFileModal(notebookFile);
+                                }}
+                                title={
+                                  DELETABLE_NOTEBOOK_FILE_STATUSES.includes(notebookFile.status)
+                                    ? "Delete file"
+                                    : "Only pending or active files can be deleted"
+                                }
+                                type="button"
+                              >
+                                <FontAwesomeIcon icon={faTrash} />
+                              </button>
+                            </div>
+                          </div>
+                          <div className="talalm-notebook-file-meta mt-2">
+                            {formatByteSize(notebookFile.byte_size)}
+                            {notebookFile.content_type ? ` · ${notebookFile.content_type}` : ""}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </React.Fragment>
+                )}
+              </div>
+            </AdminContent>
+          )}
         </div>
 
-        <div className="col-12 col-xl-8">
+        <div className={isFilesPanelCollapsed ? "col-12 col-xl talalm-notebook-chat-column" : "col-12 col-xl-8 talalm-notebook-chat-column"}>
           <AdminContent title="Chat">
             <div className="talalm-chat-panel">
                   <div className="talalm-chat-log" ref={chatLogRef}>
@@ -633,10 +738,6 @@ const NotebooksShow = () => {
                                     <span>Tokens/sec</span>
                                     <strong>{renderMetric(message.content.details.tokens_per_second, formatTokensPerSecond)}</strong>
                                   </div>
-                                  <div className="talalm-chat-stat">
-                                    <span>Finish</span>
-                                    <strong>{renderMetric(message.content.details.finish_reason)}</strong>
-                                  </div>
                                 </div>
                               ) : null}
                             </div>
@@ -666,22 +767,46 @@ const NotebooksShow = () => {
 
                   <form className="talalm-chat-composer mt-3" onSubmit={handlePromptSubmit}>
                     <div className="talalm-chat-retrieval">
-                      <label className="form-label mb-0" htmlFor="notebook-retrieval-k">
-                        Context chunks
-                      </label>
-                      <input
-                        className="form-control form-control-sm"
-                        disabled={isInferring}
-                        id="notebook-retrieval-k"
-                        max="500"
-                        min="1"
-                        onChange={(event) => {
-                          setRetrievalK(event.target.value);
-                        }}
-                        step="1"
-                        type="number"
-                        value={retrievalK}
-                      />
+                      <div className="talalm-range-control">
+                        <div className="d-flex align-items-center justify-content-between gap-3">
+                          <label className="form-label mb-0" htmlFor="notebook-retrieval-k">
+                            Context chunks
+                          </label>
+                          <input
+                            className="form-control form-control-sm talalm-range-value"
+                            disabled={isInferring}
+                            max={RETRIEVAL_K_MAX}
+                            min={RETRIEVAL_K_MIN}
+                            onBlur={() => {
+                              setRetrievalK(String(normalizedRetrievalK(retrievalK)));
+                            }}
+                            onChange={(event) => {
+                              setRetrievalK(event.target.value);
+                            }}
+                            step="1"
+                            type="number"
+                            value={retrievalK}
+                          />
+                        </div>
+                        <input
+                          className="form-range"
+                          disabled={isInferring}
+                          id="notebook-retrieval-k"
+                          max={RETRIEVAL_K_MAX}
+                          min={RETRIEVAL_K_MIN}
+                          onChange={(event) => {
+                            setRetrievalK(event.target.value);
+                          }}
+                          step="1"
+                          type="range"
+                          value={normalizedRetrievalK(retrievalK)}
+                        />
+                        <div className="talalm-range-bounds">
+                          <span>Min {RETRIEVAL_K_MIN.toLocaleString()}</span>
+                          <span>Default {RETRIEVAL_K_DEFAULT.toLocaleString()}</span>
+                          <span>Max {RETRIEVAL_K_MAX.toLocaleString()}</span>
+                        </div>
+                      </div>
                     </div>
                     <textarea
                       className="form-control"
@@ -690,7 +815,7 @@ const NotebooksShow = () => {
                         setPrompt(event.target.value);
                       }}
                       onKeyDown={(event) => {
-                        if (event.key === "Enter" && !event.shiftKey) {
+                        if (event.key === "Enter" && !event.shiftKey && !event.altKey) {
                           handlePromptSubmit(event);
                         }
                       }}

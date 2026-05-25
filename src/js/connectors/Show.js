@@ -457,10 +457,6 @@ const ConnectorsShow = () => {
                                         <span>Tokens/sec</span>
                                         <strong>{renderMetric(message.content.details.tokens_per_second, formatTokensPerSecond)}</strong>
                                       </div>
-                                      <div className="talalm-chat-stat">
-                                        <span>Finish</span>
-                                        <strong>{renderMetric(message.content.details.finish_reason)}</strong>
-                                      </div>
                                     </div>
                                   ) : null}
                                 </div>
@@ -496,7 +492,7 @@ const ConnectorsShow = () => {
                             setPrompt(event.target.value);
                           }}
                           onKeyDown={(event) => {
-                            if (event.key === "Enter" && !event.shiftKey) {
+                            if (event.key === "Enter" && !event.shiftKey && !event.altKey) {
                               handlePromptSubmit(event);
                             }
                           }}
