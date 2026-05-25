@@ -4,7 +4,7 @@ import remarkGfm from "remark-gfm";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Button, Modal } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowLeft, faChevronLeft, faChevronRight, faDownload, faFileLines, faPaperPlane, faPlug, faPlus, faSliders, faTrash, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { faArrowsRotate, faArrowLeft, faChevronLeft, faChevronRight, faDownload, faFileLines, faPaperPlane, faPencil, faPlug, faPlus, faSliders, faTrash, faXmark } from "@fortawesome/free-solid-svg-icons";
 import AdminContent from "../commons/AdminContent";
 import ConfirmationModal from "../commons/ConfirmationModal";
 import Loader from "../commons/Loader";
@@ -22,6 +22,10 @@ const CONNECTION_TYPES = {
 const emptyNotebookFileForm = {
   name: "",
   file: null
+};
+
+const emptyNotebookTitleForm = {
+  title: ""
 };
 
 const POLLED_NOTEBOOK_FILE_STATUSES = ["pending", "uploading", "processing"];
@@ -174,6 +178,86 @@ const renderSources = (sources = []) => {
   );
 };
 
+class ReindexNotebookCommand extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      isReindexing: false,
+      showConfirmation: false
+    };
+  }
+
+  openConfirmation = () => {
+    this.setState({ showConfirmation: true });
+  };
+
+  closeConfirmation = () => {
+    if (this.state.isReindexing) {
+      return;
+    }
+
+    this.setState({ showConfirmation: false });
+  };
+
+  execute = () => {
+    const { notebook, onAuthError, onCompleted, onError } = this.props;
+    if (this.state.isReindexing || !notebook) {
+      return;
+    }
+
+    this.setState({ isReindexing: true });
+    NotebookService.reindexNotebook(notebook.id)
+      .then((response) => {
+        this.setState({ showConfirmation: false });
+        if (onCompleted) {
+          onCompleted(response);
+        }
+      })
+      .catch((error) => {
+        if (onAuthError && onAuthError(error)) {
+          return;
+        }
+
+        this.setState({ showConfirmation: false });
+        if (onError) {
+          onError(error);
+        }
+      })
+      .finally(() => {
+        this.setState({ isReindexing: false });
+      });
+  };
+
+  render() {
+    const { disabled, fileCount = 0 } = this.props;
+    const { isReindexing, showConfirmation } = this.state;
+
+    return (
+      <React.Fragment>
+        <button
+          className="btn btn-outline-primary talalm-reindex-button d-inline-flex align-items-center justify-content-center gap-2"
+          disabled={disabled || isReindexing || fileCount === 0}
+          onClick={this.openConfirmation}
+          type="button"
+        >
+          <FontAwesomeIcon icon={faArrowsRotate} spin={isReindexing} />
+          <span>{isReindexing ? "Reindexing..." : "Reindex"}</span>
+        </button>
+
+        <ConfirmationModal
+          show={showConfirmation}
+          isLoading={isReindexing}
+          header="Reindex Notebook"
+          content={`Reindex ${fileCount.toLocaleString()} notebook ${fileCount === 1 ? "file" : "files"}? This will delete existing embeddings and queue every file for re-embedding.`}
+          loadingContent="Resetting files for re-embedding..."
+          onPrimaryClicked={this.execute}
+          onSecondaryClicked={this.closeConfirmation}
+        />
+      </React.Fragment>
+    );
+  }
+}
+
 const NotebooksShow = () => {
   const [notebook, setNotebook] = useState(null);
   const [notebookFiles, setNotebookFiles] = useState([]);
@@ -189,12 +273,17 @@ const NotebooksShow = () => {
   const [showDeleteFileModal, setShowDeleteFileModal] = useState(false);
   const [showClearChatModal, setShowClearChatModal] = useState(false);
   const [showFileModal, setShowFileModal] = useState(false);
+  const [showTitleModal, setShowTitleModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeletingFile, setIsDeletingFile] = useState(false);
+  const [isUpdatingTitle, setIsUpdatingTitle] = useState(false);
   const [downloadingFileIds, setDownloadingFileIds] = useState([]);
   const [isFilesPanelCollapsed, setIsFilesPanelCollapsed] = useState(false);
   const [selectedNotebookFile, setSelectedNotebookFile] = useState(null);
   const [isUploadingFile, setIsUploadingFile] = useState(false);
+  const [notebookTitleForm, setNotebookTitleForm] = useState(emptyNotebookTitleForm);
+  const [notebookTitleErrors, setNotebookTitleErrors] = useState({});
+  const [notebookTitleErrorMessage, setNotebookTitleErrorMessage] = useState("");
   const [notebookFileForm, setNotebookFileForm] = useState(emptyNotebookFileForm);
   const [notebookFileErrors, setNotebookFileErrors] = useState({});
   const [notebookFileErrorMessage, setNotebookFileErrorMessage] = useState("");
@@ -362,6 +451,68 @@ const NotebooksShow = () => {
     setPrompt("");
     setChatError("");
     setShowClearChatModal(false);
+  };
+
+  const openTitleModal = () => {
+    setNotebookTitleForm({ title: notebook?.title || "" });
+    setNotebookTitleErrors({});
+    setNotebookTitleErrorMessage("");
+    setShowTitleModal(true);
+  };
+
+  const closeTitleModal = () => {
+    if (isUpdatingTitle) {
+      return;
+    }
+
+    setShowTitleModal(false);
+    setNotebookTitleForm(emptyNotebookTitleForm);
+    setNotebookTitleErrors({});
+    setNotebookTitleErrorMessage("");
+  };
+
+  const handleNotebookTitleFormChange = (event) => {
+    const { name, value } = event.target;
+
+    setNotebookTitleForm((currentValues) => {
+      return {
+        ...currentValues,
+        [name]: value
+      };
+    });
+  };
+
+  const handleUpdateNotebookTitle = (event) => {
+    event.preventDefault();
+    if (isUpdatingTitle || !notebook) {
+      return;
+    }
+
+    setIsUpdatingTitle(true);
+    setNotebookTitleErrors({});
+    setNotebookTitleErrorMessage("");
+
+    NotebookService.updateNotebook(notebook.id, { title: notebookTitleForm.title })
+      .then((response) => {
+        setNotebook(response.data);
+        setShowTitleModal(false);
+        setNotebookTitleForm(emptyNotebookTitleForm);
+      })
+      .catch((error) => {
+        if (handleAuthError(error)) {
+          return;
+        }
+
+        if (error.response?.status === 422) {
+          setNotebookTitleErrors(error.response.data);
+          return;
+        }
+
+        setNotebookTitleErrorMessage(error.response?.data?.message || "Unable to update notebook.");
+      })
+      .finally(() => {
+        setIsUpdatingTitle(false);
+      });
   };
 
   const handleDownloadFile = (notebookFile) => {
@@ -549,7 +700,20 @@ const NotebooksShow = () => {
     <div className="talalm-notebook-show d-flex flex-column gap-4">
       <PageHeader
         eyebrow="Knowledge"
-        title={notebook.title}
+        title={(
+          <span className="d-inline-flex align-items-center gap-2">
+            <span className="text-break">{notebook.title}</span>
+            <button
+              aria-label="Edit notebook title"
+              className="btn btn-outline-secondary btn-sm talalm-icon-button flex-shrink-0"
+              onClick={openTitleModal}
+              title="Edit notebook title"
+              type="button"
+            >
+              <FontAwesomeIcon icon={faPencil} />
+            </button>
+          </span>
+        )}
         actions={[
           <div className="d-inline-flex align-items-center gap-3" key="notebook-status">
             {statusToLabel(notebook.status)}
@@ -697,6 +861,22 @@ const NotebooksShow = () => {
                         </div>
                       );
                     })}
+
+                    <div className="talalm-notebook-files-footer">
+                      <ReindexNotebookCommand
+                        disabled={isFilesLoading}
+                        fileCount={notebookFiles.length}
+                        notebook={notebook}
+                        onAuthError={handleAuthError}
+                        onCompleted={() => {
+                          loadNotebookFiles();
+                          loadNotebook();
+                        }}
+                        onError={(error) => {
+                          setFilesErrorMessage(error.response?.data?.message || "Unable to reindex notebook files.");
+                        }}
+                      />
+                    </div>
                   </React.Fragment>
                 )}
               </div>
@@ -866,6 +1046,71 @@ const NotebooksShow = () => {
           </AdminContent>
         </div>
       </div>
+
+      <Modal
+        backdrop={isUpdatingTitle ? "static" : true}
+        keyboard={!isUpdatingTitle}
+        show={showTitleModal}
+        onHide={closeTitleModal}
+      >
+        <form onSubmit={handleUpdateNotebookTitle}>
+          <Modal.Header closeButton={!isUpdatingTitle}>
+            <Modal.Title>Edit Notebook</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <div className="row g-3">
+              {notebookTitleErrorMessage ? (
+                <div className="col-12">
+                  <div className="alert alert-danger mb-0">
+                    {notebookTitleErrorMessage}
+                  </div>
+                </div>
+              ) : null}
+
+              <div className="col-12">
+                <label className="form-label" htmlFor="notebook-title">
+                  Name
+                </label>
+                <input
+                  autoFocus
+                  className={getInputClassName(notebookTitleErrors, "title")}
+                  disabled={isUpdatingTitle}
+                  id="notebook-title"
+                  name="title"
+                  onChange={handleNotebookTitleFormChange}
+                  value={notebookTitleForm.title}
+                />
+                {renderInputErrors(notebookTitleErrors, "title")}
+              </div>
+            </div>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button
+              className="d-inline-flex align-items-center gap-2"
+              disabled={isUpdatingTitle || !notebookTitleForm.title.trim()}
+              type="submit"
+              variant="primary"
+            >
+              {isUpdatingTitle ? (
+                <span className="spinner-border spinner-border-sm" aria-hidden="true" />
+              ) : (
+                <FontAwesomeIcon icon={faPencil} />
+              )}
+              <span>{isUpdatingTitle ? "Updating..." : "Update Notebook"}</span>
+            </Button>
+            <Button
+              className="d-inline-flex align-items-center gap-2"
+              disabled={isUpdatingTitle}
+              onClick={closeTitleModal}
+              type="button"
+              variant="secondary"
+            >
+              <FontAwesomeIcon icon={faXmark} />
+              <span>Close</span>
+            </Button>
+          </Modal.Footer>
+        </form>
+      </Modal>
 
       <Modal
         show={showConfigModal}

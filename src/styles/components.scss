@@ -838,6 +838,16 @@ body[data-theme="light"] .talalm-badge-processing {
   resize: vertical;
 }
 
+.talalm-notebook-files-footer {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--talalm-border);
+}
+
+.talalm-reindex-button {
+  width: 100%;
+}
+
 .talalm-chat-composer-footer {
   display: flex;
   align-items: center;

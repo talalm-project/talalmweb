@@ -50,8 +50,20 @@ const NotebookService = {
     });
   },
 
+  updateNotebook(id, args) {
+    return axios.put(`${API_BASE_URL}/notebooks/${id}`, args, {
+      headers: buildHeaders()
+    });
+  },
+
   inferNotebook(id, args) {
     return axios.post(`${API_BASE_URL}/notebooks/${id}/infer`, args, {
+      headers: buildHeaders()
+    });
+  },
+
+  reindexNotebook(id) {
+    return axios.post(`${API_BASE_URL}/notebooks/${id}/reindex`, {}, {
       headers: buildHeaders()
     });
   },
