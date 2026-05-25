@@ -20,22 +20,42 @@
   --talalm-warning: #{$talalm-warning};
   --talalm-success: #{$talalm-success};
   --talalm-info: #{$talalm-info};
+  color-scheme: dark;
+}
+
+body[data-theme="light"] {
+  --talalm-bg: #f4f6f8;
+  --talalm-surface-lowest: #ffffff;
+  --talalm-surface-low: #eef2f5;
+  --talalm-surface: #ffffff;
+  --talalm-surface-high: #e7edf2;
+  --talalm-surface-highest: #d8e1e8;
+  --talalm-text: #344054;
+  --talalm-text-strong: #111827;
+  --talalm-text-muted: #667085;
+  --talalm-border: #cbd5df;
+  --talalm-border-strong: #98a2b3;
+  --talalm-primary: #4f56b3;
+  --talalm-primary-bright: #343b91;
+  --talalm-primary-ink: #ffffff;
+  --talalm-secondary: #9f7a12;
+  color-scheme: light;
 }
 
 .talalm-panel,
 .card {
-  background: $talalm-surface;
-  border: 1px solid $talalm-border;
+  background: var(--talalm-surface);
+  border: 1px solid var(--talalm-border);
   border-radius: 0;
-  color: $talalm-text;
+  color: var(--talalm-text);
   box-shadow: none !important;
 }
 
 .talalm-panel-header,
 .card-header {
-  background: $talalm-surface-high;
-  border-bottom: 1px solid $talalm-border;
-  color: $talalm-text-strong;
+  background: var(--talalm-surface-high);
+  border-bottom: 1px solid var(--talalm-border);
+  color: var(--talalm-text-strong);
   font-family: $font-heading;
   font-weight: 700;
 }
@@ -44,11 +64,11 @@
 .card-body,
 .card-footer {
   background: transparent;
-  color: $talalm-text;
+  color: var(--talalm-text);
 }
 
 .card-footer {
-  border-top: 1px solid $talalm-border;
+  border-top: 1px solid var(--talalm-border);
 }
 
 .talalm-stat-card {
@@ -59,7 +79,7 @@
 .talalm-stat-label,
 .talalm-label {
   margin: 0;
-  color: $talalm-text-muted;
+  color: var(--talalm-text-muted);
   font-family: $font-body;
   font-size: 0.72rem;
   font-weight: 700;
@@ -70,7 +90,7 @@
 
 .talalm-stat-value {
   margin: 0.45rem 0 0.15rem;
-  color: $talalm-text-strong;
+  color: var(--talalm-text-strong);
   font-family: $font-heading;
   font-size: 1.5rem;
   font-weight: 700;
@@ -78,7 +98,7 @@
 }
 
 .talalm-muted {
-  color: $talalm-text-muted !important;
+  color: var(--talalm-text-muted) !important;
 }
 
 .talalm-badge,
@@ -88,10 +108,10 @@
   justify-content: center;
   gap: 0.35rem;
   min-height: 1.55rem;
-  border: 1px solid $talalm-border;
+  border: 1px solid var(--talalm-border);
   border-radius: 0;
-  background: $talalm-surface-high;
-  color: $talalm-text-strong;
+  background: var(--talalm-surface-high);
+  color: var(--talalm-text-strong);
   font-family: $font-body;
   font-size: 0.72rem;
   font-weight: 700;
@@ -108,16 +128,16 @@
 
 .text-bg-primary,
 .talalm-badge-primary {
-  background: $talalm-primary !important;
-  border-color: $talalm-primary !important;
-  color: $talalm-primary-ink !important;
+  background: var(--talalm-primary) !important;
+  border-color: var(--talalm-primary) !important;
+  color: var(--talalm-primary-ink) !important;
 }
 
 .text-bg-secondary,
 .talalm-badge-secondary {
-  background: $talalm-surface-highest !important;
-  border-color: $talalm-border !important;
-  color: $talalm-text !important;
+  background: var(--talalm-surface-highest) !important;
+  border-color: var(--talalm-border) !important;
+  color: var(--talalm-text) !important;
 }
 
 .text-bg-success,
@@ -150,17 +170,17 @@
 
 .text-bg-dark,
 .talalm-badge-dark {
-  background: $talalm-surface-lowest !important;
-  border-color: $talalm-border !important;
-  color: $talalm-text !important;
+  background: var(--talalm-surface-lowest) !important;
+  border-color: var(--talalm-border) !important;
+  color: var(--talalm-text) !important;
 }
 
 .talalm-priority-item,
 .talalm-detail-block {
-  background: $talalm-surface-low;
-  border: 1px solid $talalm-border;
+  background: var(--talalm-surface-low);
+  border: 1px solid var(--talalm-border);
   border-radius: 0;
-  color: $talalm-text;
+  color: var(--talalm-text);
 }
 
 .talalm-detail-block {
@@ -169,7 +189,7 @@
 }
 
 .talalm-detail-value {
-  color: $talalm-text-strong;
+  color: var(--talalm-text-strong);
   font-weight: 700;
 }
 
@@ -178,9 +198,9 @@
   margin: 0;
   padding: 0.75rem;
   overflow: auto;
-  background: $talalm-surface-lowest;
-  border: 1px solid $talalm-border;
-  color: $talalm-text;
+  background: var(--talalm-surface-lowest);
+  border: 1px solid var(--talalm-border);
+  color: var(--talalm-text);
   font-family: $font-mono;
   font-size: 0.82rem;
   font-weight: 400;
@@ -214,7 +234,7 @@
   flex: 0 0 auto;
   gap: 0.35rem;
   margin-bottom: 1rem;
-  border-bottom: 1px solid $talalm-border;
+  border-bottom: 1px solid var(--talalm-border);
 }
 
 .talalm-tab {
@@ -226,7 +246,7 @@
   background: transparent;
   border: 1px solid transparent;
   border-bottom: 0;
-  color: $talalm-text-muted;
+  color: var(--talalm-text-muted);
   font-family: $font-body;
   font-size: 0.78rem;
   font-weight: 700;
@@ -236,14 +256,14 @@
 
 .talalm-tab:hover,
 .talalm-tab:focus {
-  color: $talalm-text-strong;
+  color: var(--talalm-text-strong);
   outline: 0;
 }
 
 .talalm-tab.active {
-  background: $talalm-surface-low;
-  border-color: $talalm-border;
-  color: $talalm-text-strong;
+  background: var(--talalm-surface-low);
+  border-color: var(--talalm-border);
+  color: var(--talalm-text-strong);
 }
 
 .talalm-tab-content {
@@ -285,9 +305,9 @@
   gap: 0.65rem;
   min-height: 10rem;
   padding: 1.25rem;
-  background: $talalm-surface-lowest;
-  border: 1px dashed $talalm-border-strong;
-  color: $talalm-text;
+  background: var(--talalm-surface-lowest);
+  border: 1px dashed var(--talalm-border-strong);
+  color: var(--talalm-text);
   font-weight: 700;
   text-align: center;
 }
@@ -295,9 +315,9 @@
 .talalm-file-dropzone:hover,
 .talalm-file-dropzone:focus,
 .talalm-file-dropzone.active {
-  background: $talalm-surface-low;
-  border-color: $talalm-primary;
-  color: $talalm-text-strong;
+  background: var(--talalm-surface-low);
+  border-color: var(--talalm-primary);
+  color: var(--talalm-text-strong);
   outline: 0;
 }
 
@@ -316,14 +336,14 @@
 
 .talalm-embedding-record {
   padding: 1rem;
-  background: $talalm-surface-lowest;
-  border: 1px solid $talalm-border;
+  background: var(--talalm-surface-lowest);
+  border: 1px solid var(--talalm-border);
 }
 
 .talalm-embedding-text {
   max-height: 8rem;
   overflow-y: auto;
-  color: $talalm-text;
+  color: var(--talalm-text);
   white-space: pre-wrap;
 }
 
@@ -332,9 +352,9 @@
   margin-bottom: 0;
   padding: 0.75rem;
   overflow: auto;
-  background: $talalm-surface-low;
-  border: 1px solid $talalm-border;
-  color: $talalm-text;
+  background: var(--talalm-surface-low);
+  border: 1px solid var(--talalm-border);
+  color: var(--talalm-text);
   font-family: $font-mono;
   font-size: 0.78rem;
 }
@@ -347,8 +367,8 @@
   min-height: 0;
   overflow-y: auto;
   padding: 1rem;
-  background: $talalm-surface-lowest;
-  border: 1px solid $talalm-border;
+  background: var(--talalm-surface-lowest);
+  border: 1px solid var(--talalm-border);
 }
 
 .talalm-chat-empty {
@@ -377,7 +397,7 @@
 
 .talalm-chat-meta {
   margin-bottom: 0.35rem;
-  color: $talalm-text-muted;
+  color: var(--talalm-text-muted);
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -390,9 +410,9 @@
   padding: 0.85rem 1rem;
   overflow-x: auto;
   word-break: break-word;
-  background: $talalm-surface-low;
-  border: 1px solid $talalm-border;
-  color: $talalm-text-strong;
+  background: var(--talalm-surface-low);
+  border: 1px solid var(--talalm-border);
+  color: var(--talalm-text-strong);
   font-family: $font-body;
   font-size: 0.92rem;
   line-height: 1.5;
@@ -410,7 +430,7 @@
 .talalm-chat-bubble h5,
 .talalm-chat-bubble h6 {
   margin: 0.25rem 0 0.65rem;
-  color: $talalm-text-strong;
+  color: var(--talalm-text-strong);
   font-family: $font-heading;
   font-size: 1rem;
   font-weight: 700;
@@ -431,21 +451,21 @@
 }
 
 .talalm-chat-bubble code {
-  color: $talalm-text-strong;
+  color: var(--talalm-text-strong);
   font-family: $font-mono;
 }
 
 .talalm-chat-bubble pre {
   padding: 0.75rem;
   overflow-x: auto;
-  background: $talalm-surface-lowest;
-  border: 1px solid $talalm-border;
+  background: var(--talalm-surface-lowest);
+  border: 1px solid var(--talalm-border);
 }
 
 .talalm-chat-bubble blockquote {
   padding-left: 0.75rem;
-  border-left: 2px solid $talalm-border-strong;
-  color: $talalm-text;
+  border-left: 2px solid var(--talalm-border-strong);
+  color: var(--talalm-text);
 }
 
 .talalm-chat-stats {
@@ -454,20 +474,20 @@
   gap: 0.5rem;
   margin-top: 0.9rem;
   padding-top: 0.75rem;
-  border-top: 1px solid $talalm-border;
+  border-top: 1px solid var(--talalm-border);
 }
 
 .talalm-chat-stat {
   min-width: 0;
   padding: 0.5rem;
-  background: $talalm-surface-lowest;
-  border: 1px solid $talalm-border;
+  background: var(--talalm-surface-lowest);
+  border: 1px solid var(--talalm-border);
 }
 
 .talalm-chat-stat span {
   display: block;
   margin-bottom: 0.25rem;
-  color: $talalm-text-muted;
+  color: var(--talalm-text-muted);
   font-size: 0.65rem;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -477,7 +497,7 @@
 
 .talalm-chat-stat strong {
   display: block;
-  color: $talalm-text-strong;
+  color: var(--talalm-text-strong);
   font-size: 0.85rem;
   line-height: 1.15;
 }
@@ -492,7 +512,7 @@
   align-items: center;
   width: auto;
   min-width: 4.25rem;
-  color: $talalm-text-muted;
+  color: var(--talalm-text-muted);
 }
 
 .talalm-chat-loader {
@@ -506,7 +526,7 @@
   width: 0.42rem;
   height: 0.42rem;
   border-radius: 50%;
-  background: $talalm-text-muted;
+  background: var(--talalm-text-muted);
   animation: talalm-chat-loader-pulse 1s ease-in-out infinite;
 }
 
@@ -551,32 +571,32 @@
 }
 
 .btn-primary {
-  background: $talalm-primary;
-  border-color: $talalm-primary;
-  color: $talalm-primary-ink;
+  background: var(--talalm-primary);
+  border-color: var(--talalm-primary);
+  color: var(--talalm-primary-ink);
 }
 
 .btn-primary:hover,
 .btn-primary:focus {
-  background: $talalm-primary-bright;
-  border-color: $talalm-primary-bright;
-  color: $talalm-primary-ink;
+  background: var(--talalm-primary-bright);
+  border-color: var(--talalm-primary-bright);
+  color: var(--talalm-primary-ink);
 }
 
 .btn-outline-primary,
 .btn-outline-secondary {
   background: transparent;
-  border-color: $talalm-border-strong;
-  color: $talalm-text-strong;
+  border-color: var(--talalm-border-strong);
+  color: var(--talalm-text-strong);
 }
 
 .btn-outline-primary:hover,
 .btn-outline-primary:focus,
 .btn-outline-secondary:hover,
 .btn-outline-secondary:focus {
-  background: $talalm-surface-high;
-  border-color: $talalm-primary-bright;
-  color: $talalm-primary-bright;
+  background: var(--talalm-surface-high);
+  border-color: var(--talalm-primary-bright);
+  color: var(--talalm-primary-bright);
 }
 
 .btn-danger,
@@ -610,31 +630,31 @@
 
 .form-control,
 .form-select {
-  background: $talalm-surface-lowest;
-  border: 1px solid $talalm-border;
+  background: var(--talalm-surface-lowest);
+  border: 1px solid var(--talalm-border);
   border-radius: 0;
-  color: $talalm-text-strong;
+  color: var(--talalm-text-strong);
   min-height: 40px;
 }
 
 .form-control:focus,
 .form-select:focus {
-  background: $talalm-surface-lowest;
-  border-color: $talalm-primary-bright;
+  background: var(--talalm-surface-lowest);
+  border-color: var(--talalm-primary-bright);
   box-shadow: none;
-  color: $talalm-text-strong;
+  color: var(--talalm-text-strong);
 }
 
 .form-control:disabled,
 .form-select:disabled {
-  background: $talalm-surface-low;
-  color: $talalm-text-muted;
+  background: var(--talalm-surface-low);
+  color: var(--talalm-text-muted);
 }
 
 .form-label,
 label {
   margin-bottom: 0.45rem;
-  color: $talalm-text;
+  color: var(--talalm-text);
   font-family: $font-body;
   font-size: 0.78rem;
   font-weight: 700;
@@ -648,25 +668,25 @@ label {
 
 .table {
   --bs-table-bg: transparent;
-  --bs-table-color: #{$talalm-text};
-  --bs-table-border-color: #{$talalm-border};
-  --bs-table-hover-bg: #{$talalm-surface-high};
-  --bs-table-hover-color: #{$talalm-text-strong};
-  color: $talalm-text;
+  --bs-table-color: var(--talalm-text);
+  --bs-table-border-color: var(--talalm-border);
+  --bs-table-hover-bg: var(--talalm-surface-high);
+  --bs-table-hover-color: var(--talalm-text-strong);
+  color: var(--talalm-text);
   margin-bottom: 0;
 }
 
 .table th {
-  color: $talalm-text-strong;
+  color: var(--talalm-text-strong);
   font-weight: 700;
 }
 
 .table thead th,
 .table-light th,
 .table-light td {
-  background: $talalm-surface-high !important;
-  color: $talalm-text-strong !important;
-  border-color: $talalm-border !important;
+  background: var(--talalm-surface-high) !important;
+  color: var(--talalm-text-strong) !important;
+  border-color: var(--talalm-border) !important;
   font-size: 0.72rem;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -688,36 +708,36 @@ label {
 }
 
 .page-link {
-  background: $talalm-surface-low;
-  border-color: $talalm-border;
+  background: var(--talalm-surface-low);
+  border-color: var(--talalm-border);
   border-radius: 0 !important;
-  color: $talalm-text;
+  color: var(--talalm-text);
 }
 
 .page-link:hover,
 .page-link.active {
-  background: $talalm-primary;
-  border-color: $talalm-primary;
-  color: $talalm-primary-ink;
+  background: var(--talalm-primary);
+  border-color: var(--talalm-primary);
+  color: var(--talalm-primary-ink);
 }
 
 .page-link.disabled,
 .page-link:disabled {
-  background: $talalm-surface-lowest;
-  border-color: $talalm-border;
-  color: $talalm-text-muted;
+  background: var(--talalm-surface-lowest);
+  border-color: var(--talalm-border);
+  color: var(--talalm-text-muted);
 }
 
 .modal-content {
-  background: $talalm-surface;
-  border: 1px solid $talalm-border;
+  background: var(--talalm-surface);
+  border: 1px solid var(--talalm-border);
   border-radius: 0;
-  color: $talalm-text;
+  color: var(--talalm-text);
 }
 
 .modal-header,
 .modal-footer {
-  border-color: $talalm-border;
+  border-color: var(--talalm-border);
 }
 
 @media (max-width: $small-screen-width) {

@@ -2,8 +2,8 @@
 
 .auth-screen {
   min-height: 100vh;
-  background: $talalm-bg;
-  color: $talalm-text;
+  background: var(--talalm-bg);
+  color: var(--talalm-text);
 }
 
 .login-form {
@@ -16,7 +16,7 @@
 }
 
 .login-title {
-  color: $talalm-text-strong;
+  color: var(--talalm-text-strong);
   font-family: $font-heading;
   font-weight: 700;
 }

@@ -16,7 +16,7 @@
   gap: 1rem;
   padding: 0 0 1rem;
   margin-bottom: 0;
-  border-bottom: 1px solid $talalm-border;
+  border-bottom: 1px solid var(--talalm-border);
 }
 
 .page-header-main {
@@ -39,7 +39,7 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #64748b;
-  color: $talalm-text-muted;
+  color: var(--talalm-text-muted);
 }
 
 .page-header-title {
@@ -48,7 +48,7 @@
   font-size: 1.7rem;
   line-height: 1.1;
   font-weight: 700;
-  color: $talalm-text-strong;
+  color: var(--talalm-text-strong);
   overflow-wrap: anywhere;
 }
 

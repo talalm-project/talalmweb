@@ -2,8 +2,9 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Button, Modal } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowLeft, faClock, faPlug, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { faArrowLeft, faClock, faPlug, faTrash, faXmark } from "@fortawesome/free-solid-svg-icons";
 import AdminContent from "../commons/AdminContent";
+import ConfirmationModal from "../commons/ConfirmationModal";
 import Loader from "../commons/Loader";
 import PageHeader from "../commons/PageHeader";
 import { statusToLabel } from "../helpers/AppHelper";
@@ -27,6 +28,8 @@ const NotebooksShow = () => {
   const [notebook, setNotebook] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showConnectorModal, setShowConnectorModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
   const { id } = useParams();
@@ -56,6 +59,40 @@ const NotebooksShow = () => {
   useEffect(() => {
     loadNotebook();
   }, [id]);
+
+  const handleAuthError = (error) => {
+    if ([401, 403].includes(error.response?.status)) {
+      destroySession();
+      navigate("/login");
+      return true;
+    }
+
+    return false;
+  };
+
+  const handleDelete = () => {
+    if (isDeleting) {
+      return;
+    }
+
+    setIsDeleting(true);
+
+    NotebookService.deleteNotebook(id)
+      .then(() => {
+        navigate("/notebooks");
+      })
+      .catch((error) => {
+        if (handleAuthError(error)) {
+          return;
+        }
+
+        setErrorMessage(error.response?.data?.message || "Unable to delete notebook.");
+        setShowDeleteModal(false);
+      })
+      .finally(() => {
+        setIsDeleting(false);
+      });
+  };
 
   if (isLoading) {
     return <Loader />;
@@ -90,6 +127,16 @@ const NotebooksShow = () => {
         actions={[
           <div className="d-inline-flex align-items-center gap-3" key="notebook-status">
             {statusToLabel(notebook.status)}
+            <button
+              className="btn btn-outline-danger d-inline-flex align-items-center gap-2"
+              onClick={() => {
+                setShowDeleteModal(true);
+              }}
+              type="button"
+            >
+              <FontAwesomeIcon icon={faTrash} />
+              <span>Delete</span>
+            </button>
             <button
               className="btn btn-outline-primary d-inline-flex align-items-center gap-2"
               onClick={() => {
@@ -217,6 +264,19 @@ const NotebooksShow = () => {
           </Button>
         </Modal.Footer>
       </Modal>
+
+      <ConfirmationModal
+        show={showDeleteModal}
+        isLoading={isDeleting}
+        header="Delete Notebook"
+        content={`Delete ${notebook.title}? This will delete the notebook and all associated assets.`}
+        onPrimaryClicked={handleDelete}
+        onSecondaryClicked={() => {
+          if (!isDeleting) {
+            setShowDeleteModal(false);
+          }
+        }}
+      />
     </div>
   );
 };

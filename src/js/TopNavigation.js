@@ -2,8 +2,10 @@ import React, { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faMagnifyingGlass,
+  faMoon,
   faRightFromBracket,
-  faStar
+  faStar,
+  faSun
 } from "@fortawesome/free-solid-svg-icons";
 import {
   getCurrentUser,
@@ -74,7 +76,7 @@ const matchesSearch = (service, normalizedSearch) => {
   return searchableText.includes(normalizedSearch);
 };
 
-export default TopNavigation = () => {
+export default TopNavigation = ({ theme, onToggleTheme }) => {
   const [searchValue, setSearchValue] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [pinnedServiceIds, setPinnedServiceIds] = useState(readPinnedServices);
@@ -191,6 +193,16 @@ export default TopNavigation = () => {
               </div>
             ) : null}
           </div>
+
+          <button
+            type="button"
+            className="top-navigation-theme-toggle"
+            aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+            title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+            onClick={onToggleTheme}
+          >
+            <FontAwesomeIcon icon={theme === "dark" ? faSun : faMoon} />
+          </button>
 
           <div className="top-navigation-actions">
             <div className="text-end top-navigation-user">

@@ -19,6 +19,12 @@ const NotebookService = {
     return axios.post(`${API_BASE_URL}/notebooks`, args, {
       headers: buildHeaders()
     });
+  },
+
+  deleteNotebook(id) {
+    return axios.delete(`${API_BASE_URL}/notebooks/${id}`, {
+      headers: buildHeaders()
+    });
   }
 };
 

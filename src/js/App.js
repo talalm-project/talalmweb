@@ -23,6 +23,19 @@ import UsersIndex from "./users/Index";
 import UsersShow from "./users/Show";
 import UsersForm from "./users/Form";
 
+const THEME_STORAGE_KEY = "TALALM_THEME";
+const DEFAULT_THEME = "dark";
+
+const readSavedTheme = () => {
+  const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+
+  if (savedTheme === "light" || savedTheme === "dark") {
+    return savedTheme;
+  }
+
+  return DEFAULT_THEME;
+};
+
 const PublicApp = () => {
   return (
     <Routes>
@@ -52,12 +65,15 @@ const AdminRoute = ({ children }) => {
   return children;
 };
 
-const AuthenticatedApp = () => {
+const AuthenticatedApp = ({ theme, onToggleTheme }) => {
   return (
     <div className="app-container">
       <Sidebar />
       <div className="app-main-section">
-        <TopNavigation />
+        <TopNavigation
+          theme={theme}
+          onToggleTheme={onToggleTheme}
+        />
         <main className="app-page-shell container-fluid px-3">
           <Routes>
             <Route
@@ -161,6 +177,12 @@ const AuthenticatedApp = () => {
 
 const App = () => {
   const [authenticated, setAuthenticated] = useState(isLoggedIn());
+  const [theme, setTheme] = useState(readSavedTheme);
+
+  useEffect(() => {
+    document.body.dataset.theme = theme;
+    localStorage.setItem(THEME_STORAGE_KEY, theme);
+  }, [theme]);
 
   useEffect(() => {
     const syncAuthenticationState = () => {
@@ -178,8 +200,19 @@ const App = () => {
     };
   }, []);
 
+  const toggleTheme = () => {
+    setTheme((currentTheme) => {
+      return currentTheme === "dark" ? "light" : "dark";
+    });
+  };
+
   if (authenticated) {
-    return <AuthenticatedApp />;
+    return (
+      <AuthenticatedApp
+        theme={theme}
+        onToggleTheme={toggleTheme}
+      />
+    );
   }
 
   return <PublicApp />;

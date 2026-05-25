@@ -4,12 +4,12 @@
   padding: 8px;
   padding-left: 24px;
   text-transform: uppercase;
-  background-color: $category-color;
+  background-color: var(--talalm-primary);
   font-weight: bold;
   font-size: 0.75rem;
 
   &:hover {
-    background-color: $category-color !important;
+    background-color: var(--talalm-primary) !important;
   }
 }
 
@@ -19,8 +19,8 @@
   left: 0;
   height: 100%;
   width: $sidebar-active-width;
-  background: $dark-purple;
-  border-right: 1px solid $talalm-border;
+  background: var(--talalm-surface-low);
+  border-right: 1px solid var(--talalm-border);
   z-index: 100;
   transition: width 0.3s ease;
 }
@@ -47,12 +47,12 @@
   padding-top: 0;
   display: flex;
   align-items: center;
-  border-bottom: 1px solid $talalm-border;
+  border-bottom: 1px solid var(--talalm-border);
 }
 
 .sidebar .logo-details i {
   font-size: $logo-text-size;
-  color: $nav-primary-text-color;
+  color: var(--talalm-text-strong);
   height: $sidebar-item-height;
   min-width: $sidebar-closed-width;
   text-align: center;
@@ -62,7 +62,7 @@
 .sidebar .logo-details .logo-name {
   margin-left: -15px;
   font-size: $logo-text-size;
-  color: $nav-primary-text-color;
+  color: var(--talalm-text-strong);
   font-family: $font-heading;
   font-weight: 800;
   letter-spacing: 0.04em;
@@ -114,7 +114,7 @@
   display: block;
   flex: 1 1 auto;
   height: 1px;
-  background: $talalm-border;
+  background: var(--talalm-border);
 }
 
 .sidebar-divider-label {
@@ -123,13 +123,13 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: $talalm-text-muted;
+  color: var(--talalm-text-muted);
 }
 
 .sidebar .nav-links li:hover,
 .sidebar .nav-links li.active {
-  background: $english-violet;
-  box-shadow: inset 3px 0 0 $talalm-primary;
+  background: var(--talalm-surface-high);
+  box-shadow: inset 3px 0 0 var(--talalm-primary);
 }
 
 .sidebar .nav-links li .icon-link {
@@ -147,14 +147,14 @@
   min-width: $sidebar-closed-width;
   text-align: center;
   line-height: $sidebar-item-height;
-  color: $nav-primary-text-color;
+  color: var(--talalm-text-strong);
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .sidebar .nav-links li:hover i,
 .sidebar .nav-links li.active i {
-  color: $nav-primary-text-color;
+  color: var(--talalm-text-strong);
 }
 
 .sidebar .nav-links li.show-menu i.arrow {
@@ -176,7 +176,7 @@
   margin-left: -15px;
   font-size: $nav-text-size;
   font-weight: 700;
-  color: $nav-primary-text-color;
+  color: var(--talalm-text-strong);
   transition: all 0.4s ease;
   white-space: nowrap;
 }
@@ -191,7 +191,7 @@
 
 .sidebar .nav-links li:hover a .link-name,
 .sidebar .nav-links li.active a .link-name {
-  color: $nav-primary-text-color;
+  color: var(--talalm-text-strong);
 }
 
 .sidebar.close .nav-links li a .link-name {
@@ -208,7 +208,7 @@
 
 .sidebar .nav-links li .sub-menu {
   margin-top: -10px;
-  background: $english-violet;
+  background: var(--talalm-surface-high);
   display: none;
 }
 
@@ -222,7 +222,7 @@
 }
 
 .sidebar .nav-links li .sub-menu a {
-  color: $nav-primary-text-color;
+  color: var(--talalm-text-strong);
   font-size: $nav-text-size;
   padding: 5px 0;
   white-space: nowrap;
@@ -284,7 +284,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: $category-color;
+  background: var(--talalm-primary);
   padding: 12px 0;
   transition: all 0.5s ease;
   font-weight: bold;
@@ -329,7 +329,7 @@
   object-fit: cover;
   border-radius: 10px;
   margin: 0 14px 0 12px;
-  background: $english-violet;
+  background: var(--talalm-surface-high);
   transition: all 0.5s ease;
 }
 
@@ -339,7 +339,7 @@
 
 .sidebar .profile-details .profile-name,
 .sidebar .profile-details .job {
-  color: $nav-primary-text-color;
+  color: var(--talalm-text-strong);
   white-space: nowrap;
   transition: all 0.7s ease;
 }
@@ -355,7 +355,7 @@
 }
 
 .sidebar .profile-details .job {
-  color: $nav-secondary-text-color;
+  color: var(--talalm-text-muted);
   font-size: $body-3-text-size;
 }
 

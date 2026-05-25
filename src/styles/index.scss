@@ -21,8 +21,8 @@ body,
 
 body {
   margin: 0;
-  background: variables.$talalm-bg;
-  color: variables.$talalm-text;
+  background: var(--talalm-bg);
+  color: var(--talalm-text);
   font-family: variables.$font-body;
 }
 
@@ -33,7 +33,7 @@ body {
 .app-container {
   overflow-x: hidden;
   min-height: 100vh;
-  background: variables.$talalm-bg;
+  background: var(--talalm-bg);
 }
 
 .app-main-section {
@@ -43,21 +43,21 @@ body {
 }
 
 a {
-  color: variables.$talalm-primary-bright;
+  color: var(--talalm-primary-bright);
 }
 
 .text-muted {
-  color: variables.$talalm-text-muted !important;
+  color: var(--talalm-text-muted) !important;
 }
 
 hr {
-  border-color: variables.$talalm-border;
+  border-color: var(--talalm-border);
   opacity: 1;
 }
 
 ::selection {
-  background: variables.$talalm-primary;
-  color: variables.$talalm-primary-ink;
+  background: var(--talalm-primary);
+  color: var(--talalm-primary-ink);
 }
 
 @media (max-width: variables.$small-screen-width) {
