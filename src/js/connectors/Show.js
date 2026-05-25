@@ -7,6 +7,7 @@ import { faArrowLeft, faCircleInfo, faCloudArrowUp, faDiagramProject, faFlask, f
 import AdminContent from "../commons/AdminContent";
 import Loader from "../commons/Loader";
 import PageHeader from "../commons/PageHeader";
+import { contextWindowUsage } from "../helpers/ContextWindowHelper";
 import { destroySession } from "../services/AuthService";
 import ConnectorService from "../services/ConnectorService";
 
@@ -112,6 +113,7 @@ const ConnectorsShow = () => {
   const embeddingFileInputRef = useRef(null);
   const navigate = useNavigate();
   const { id } = useParams();
+  const promptContextUsage = contextWindowUsage(connector, chatMessages, prompt, renderResponse);
 
   const loadConnector = () => {
     setIsLoading(true);
@@ -500,10 +502,18 @@ const ConnectorsShow = () => {
                           rows="3"
                           value={prompt}
                         />
-                        <button className="btn btn-primary d-inline-flex align-items-center gap-2" disabled={isInferring || !prompt.trim()} type="submit">
-                          <FontAwesomeIcon icon={faPaperPlane} />
-                          <span>{isInferring ? "Sending..." : "Send"}</span>
-                        </button>
+                        <div className="talalm-chat-composer-footer">
+                          <div
+                            className={`talalm-context-meter talalm-context-meter-${promptContextUsage.level}`}
+                            title={`${promptContextUsage.remainingTokens.toLocaleString()} of ${promptContextUsage.contextWindow.toLocaleString()} context tokens left`}
+                          >
+                            {promptContextUsage.remainingPercent}% context left
+                          </div>
+                          <button className="btn btn-primary talalm-chat-send-button d-inline-flex align-items-center gap-2" disabled={isInferring || !prompt.trim()} type="submit">
+                            <FontAwesomeIcon icon={faPaperPlane} />
+                            <span>{isInferring ? "Sending..." : "Send"}</span>
+                          </button>
+                        </div>
                       </form>
                     </div>
                   </div>

@@ -838,6 +838,28 @@ body[data-theme="light"] .talalm-badge-processing {
   resize: vertical;
 }
 
+.talalm-chat-composer-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.talalm-context-meter {
+  color: var(--talalm-text-muted);
+  font-family: $font-body;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.talalm-context-meter-low {
+  color: var(--talalm-warning);
+}
+
+.talalm-context-meter-critical {
+  color: var(--talalm-danger);
+}
+
 .talalm-chat-send-button {
   justify-self: end;
 }
@@ -1092,6 +1114,11 @@ label {
 
   .talalm-chat-retrieval .form-control {
     width: 100%;
+  }
+
+  .talalm-chat-composer-footer {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .talalm-chat-send-button {

@@ -9,6 +9,7 @@ import AdminContent from "../commons/AdminContent";
 import ConfirmationModal from "../commons/ConfirmationModal";
 import Loader from "../commons/Loader";
 import PageHeader from "../commons/PageHeader";
+import { contextWindowUsage } from "../helpers/ContextWindowHelper";
 import { getInputClassName, renderInputErrors, statusToLabel } from "../helpers/AppHelper";
 import { destroySession } from "../services/AuthService";
 import NotebookService from "../services/NotebookService";
@@ -186,6 +187,7 @@ const NotebooksShow = () => {
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showDeleteFileModal, setShowDeleteFileModal] = useState(false);
+  const [showClearChatModal, setShowClearChatModal] = useState(false);
   const [showFileModal, setShowFileModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeletingFile, setIsDeletingFile] = useState(false);
@@ -201,6 +203,7 @@ const NotebooksShow = () => {
   const chatLogRef = useRef(null);
   const navigate = useNavigate();
   const { id } = useParams();
+  const promptContextUsage = contextWindowUsage(notebook?.connector, chatMessages, prompt, renderResponse);
 
   const loadNotebook = () => {
     setIsLoading(true);
@@ -352,6 +355,13 @@ const NotebooksShow = () => {
       .finally(() => {
         setIsDeletingFile(false);
       });
+  };
+
+  const handleClearChat = () => {
+    setChatMessages([]);
+    setPrompt("");
+    setChatError("");
+    setShowClearChatModal(false);
   };
 
   const handleDownloadFile = (notebookFile) => {
@@ -695,7 +705,23 @@ const NotebooksShow = () => {
         </div>
 
         <div className={isFilesPanelCollapsed ? "col-12 col-xl talalm-notebook-chat-column" : "col-12 col-xl-8 talalm-notebook-chat-column"}>
-          <AdminContent title="Chat">
+          <AdminContent
+            title="Chat"
+            headerActions={[
+              <button
+                className="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-2"
+                disabled={isInferring || (chatMessages.length === 0 && !prompt.trim())}
+                key="clear-chat"
+                onClick={() => {
+                  setShowClearChatModal(true);
+                }}
+                type="button"
+              >
+                <FontAwesomeIcon icon={faXmark} />
+                <span>Clear</span>
+              </button>
+            ]}
+          >
             <div className="talalm-chat-panel">
                   <div className="talalm-chat-log" ref={chatLogRef}>
                     {chatMessages.length === 0 ? (
@@ -823,10 +849,18 @@ const NotebooksShow = () => {
                       rows="3"
                       value={prompt}
                     />
-                    <button className="btn btn-primary talalm-chat-send-button d-inline-flex align-items-center gap-2" disabled={isInferring || !prompt.trim()} type="submit">
-                      <FontAwesomeIcon icon={faPaperPlane} />
-                      <span>{isInferring ? "Sending..." : "Send"}</span>
-                    </button>
+                    <div className="talalm-chat-composer-footer">
+                      <div
+                        className={`talalm-context-meter talalm-context-meter-${promptContextUsage.level}`}
+                        title={`${promptContextUsage.remainingTokens.toLocaleString()} of ${promptContextUsage.contextWindow.toLocaleString()} context tokens left`}
+                      >
+                        {promptContextUsage.remainingPercent}% context left
+                      </div>
+                      <button className="btn btn-primary talalm-chat-send-button d-inline-flex align-items-center gap-2" disabled={isInferring || !prompt.trim()} type="submit">
+                        <FontAwesomeIcon icon={faPaperPlane} />
+                        <span>{isInferring ? "Sending..." : "Send"}</span>
+                      </button>
+                    </div>
                   </form>
             </div>
           </AdminContent>
@@ -1037,6 +1071,17 @@ const NotebooksShow = () => {
           if (!isDeleting) {
             setShowDeleteModal(false);
           }
+        }}
+      />
+
+      <ConfirmationModal
+        show={showClearChatModal}
+        isLoading={false}
+        header="Clear Chat Context"
+        content="Clear the current chat context and reset the prompt?"
+        onPrimaryClicked={handleClearChat}
+        onSecondaryClicked={() => {
+          setShowClearChatModal(false);
         }}
       />
     </div>
