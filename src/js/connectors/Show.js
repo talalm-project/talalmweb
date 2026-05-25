@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft, faCircleInfo, faCloudArrowUp, faDiagramProject, faFlask, faPaperPlane, faPenToSquare, faServer } from "@fortawesome/free-solid-svg-icons";
@@ -431,7 +432,7 @@ const ConnectorsShow = () => {
                                   {isUser ? "You" : "Connector"}
                                 </div>
                                 <div className="talalm-chat-bubble">
-                                  <ReactMarkdown>
+                                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
                                     {renderResponse(message.content)}
                                   </ReactMarkdown>
                                   {!isUser && message.content?.details ? (

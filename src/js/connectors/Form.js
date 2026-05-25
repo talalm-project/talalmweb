@@ -15,6 +15,10 @@ const CONNECTION_TYPES = [
   { value: "openai", label: "OpenAI" }
 ];
 
+const DEFAULT_CONTEXT_WINDOW_MIN = 512;
+const DEFAULT_CONTEXT_WINDOW_MAX = 4096;
+const DEFAULT_CONTEXT_WINDOW_RECOMMENDED = 4096;
+
 const ConnectorsForm = () => {
   const [formValues, setFormValues] = useState({
     code: "",
@@ -47,12 +51,34 @@ const ConnectorsForm = () => {
   const embeddingLocalModels = localModels.filter((model) => {
     return model.type === "embedding" || model.type === "embeddings";
   });
+  const selectedLocalModel = inferenceLocalModels.find((model) => {
+    return model.path === selectedLocalModelPath;
+  });
+  const contextWindowMin = selectedLocalModel?.context_window_min || DEFAULT_CONTEXT_WINDOW_MIN;
+  const contextWindowMax = selectedLocalModel?.context_window_max || DEFAULT_CONTEXT_WINDOW_MAX;
+  const contextWindowRecommended = selectedLocalModel?.context_window_recommended || DEFAULT_CONTEXT_WINDOW_RECOMMENDED;
+  const contextWindowValue = Number(formValues.data?.model_options?.n_ctx || contextWindowRecommended);
 
   const updateFormValue = (key, value) => {
     setFormValues((currentValues) => {
       return {
         ...currentValues,
         [key]: value
+      };
+    });
+  };
+
+  const updateModelOption = (key, value) => {
+    setFormValues((currentValues) => {
+      return {
+        ...currentValues,
+        data: {
+          ...(currentValues.data || {}),
+          model_options: {
+            ...((currentValues.data || {}).model_options || {}),
+            [key]: value
+          }
+        }
       };
     });
   };
@@ -78,7 +104,14 @@ const ConnectorsForm = () => {
         ...currentValues,
         name: localModel?.name || "",
         local_file_path: localModel?.path || "",
-        api_key: ""
+        api_key: "",
+        data: {
+          ...(currentValues.data || {}),
+          model_options: {
+            ...((currentValues.data || {}).model_options || {}),
+            n_ctx: localModel?.context_window_recommended || DEFAULT_CONTEXT_WINDOW_RECOMMENDED
+          }
+        }
       };
     });
   };
@@ -166,7 +199,8 @@ const ConnectorsForm = () => {
         local_file_path: "",
         embedding_local_file_path: "",
         embedding_name: "",
-        api_key: connectionType === "local" ? "" : currentValues.api_key
+        api_key: connectionType === "local" ? "" : currentValues.api_key,
+        data: connectionType === "local" ? currentValues.data : {}
       };
     });
     setSelectedLocalModelPath("");
@@ -191,6 +225,13 @@ const ConnectorsForm = () => {
       payload.embedding_local_file_path = formValues.embedding_local_file_path;
       payload.embedding_name = formValues.embedding_name;
       payload.api_key = null;
+      payload.data = {
+        ...(payload.data || {}),
+        model_options: {
+          ...((payload.data || {}).model_options || {}),
+          n_ctx: contextWindowValue
+        }
+      };
     }
 
     if (isOpenAi) {
@@ -339,6 +380,45 @@ const ConnectorsForm = () => {
                     value={formValues.local_file_path}
                   />
                   {renderInputErrors(errors, "local_file_path")}
+                </div>
+
+                <div className="col-12">
+                  <div className="talalm-range-control">
+                    <div className="d-flex align-items-center justify-content-between gap-3">
+                      <label className="form-label mb-0" htmlFor="connector-context-window">
+                        Context Window
+                      </label>
+                      <input
+                        className="form-control form-control-sm talalm-range-value"
+                        disabled={isLoading || !formValues.local_file_path}
+                        max={contextWindowMax}
+                        min={contextWindowMin}
+                        onChange={(event) => {
+                          updateModelOption("n_ctx", Number(event.target.value));
+                        }}
+                        type="number"
+                        value={contextWindowValue}
+                      />
+                    </div>
+                    <input
+                      className="form-range"
+                      disabled={isLoading || !formValues.local_file_path}
+                      id="connector-context-window"
+                      max={contextWindowMax}
+                      min={contextWindowMin}
+                      onChange={(event) => {
+                        updateModelOption("n_ctx", Number(event.target.value));
+                      }}
+                      step="128"
+                      type="range"
+                      value={contextWindowValue}
+                    />
+                    <div className="talalm-range-bounds">
+                      <span>Min {contextWindowMin.toLocaleString()}</span>
+                      <span>Recommended {contextWindowRecommended.toLocaleString()}</span>
+                      <span>Max {contextWindowMax.toLocaleString()}</span>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="col-12">

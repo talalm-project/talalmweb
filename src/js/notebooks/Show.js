@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Button, Modal } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -101,6 +102,42 @@ const formatSeconds = (value) => {
 
 const formatTokensPerSecond = (value) => {
   return `${Number(value).toFixed(2)}/s`;
+};
+
+const renderSources = (sources = []) => {
+  if (!Array.isArray(sources) || sources.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="talalm-chat-sources">
+      <div className="talalm-chat-sources-title">Sources</div>
+      <div className="talalm-chat-sources-list">
+        {sources.map((source) => {
+          const label = source.name || source.filename || "Notebook file";
+          const detail = source.filename && source.filename !== label ? source.filename : source.content_type;
+          const SourceTag = source.url ? "a" : "span";
+          const sourceLinkProps = source.url ? { href: source.url, rel: "noreferrer", target: "_blank" } : {};
+
+          return (
+            <SourceTag
+              className={`talalm-chat-source${source.url ? "" : " talalm-chat-source-disabled"}`}
+              key={`notebook-source-${source.id}`}
+              {...sourceLinkProps}
+            >
+              <FontAwesomeIcon icon={faFileLines} />
+              <span className="min-w-0">
+                <span className="talalm-chat-source-name text-break">{label}</span>
+                {detail ? (
+                  <span className="talalm-chat-source-meta text-break">{detail}</span>
+                ) : null}
+              </span>
+            </SourceTag>
+          );
+        })}
+      </div>
+    </div>
+  );
 };
 
 const NotebooksShow = () => {
@@ -436,7 +473,7 @@ const NotebooksShow = () => {
   }
 
   return (
-    <div className="d-flex flex-column gap-4">
+    <div className="talalm-notebook-show d-flex flex-column gap-4">
       <PageHeader
         eyebrow="Knowledge"
         title={notebook.title}
@@ -471,7 +508,7 @@ const NotebooksShow = () => {
         ]}
       />
 
-      <div className="row g-4 align-items-stretch">
+      <div className="row g-4 align-items-stretch talalm-notebook-layout">
         <div className="col-12 col-xl-4">
           <AdminContent
             title="Files"
@@ -570,9 +607,10 @@ const NotebooksShow = () => {
                               {isUser ? "You" : "Notebook"}
                             </div>
                             <div className="talalm-chat-bubble">
-                              <ReactMarkdown>
+                              <ReactMarkdown remarkPlugins={[remarkGfm]}>
                                 {renderResponse(message.content)}
                               </ReactMarkdown>
+                              {!isUser ? renderSources(message.content?.sources) : null}
                               {!isUser && message.content?.details ? (
                                 <div className="talalm-chat-stats">
                                   <div className="talalm-chat-stat">

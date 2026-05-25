@@ -236,6 +236,10 @@ body[data-theme="light"] .talalm-badge-processing {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  max-height: 100%;
+  padding-right: 0.2rem;
+  overscroll-behavior: contain;
+  overflow-y: auto;
 }
 
 .talalm-notebook-file {
@@ -279,6 +283,61 @@ body[data-theme="light"] .talalm-badge-processing {
   width: 0.82rem;
   height: 0.82rem;
   border-width: 0.14rem;
+}
+
+.talalm-notebook-show {
+  height: calc(100vh - 6.25rem);
+  min-height: 34rem;
+  overflow: hidden;
+}
+
+.talalm-notebook-layout {
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.talalm-notebook-layout > [class*="col-"] {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.talalm-notebook-layout .talalm-panel {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  margin-bottom: 0 !important;
+  overflow: hidden;
+}
+
+.talalm-notebook-layout .talalm-panel > .card-body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.talalm-notebook-layout .talalm-notebook-files {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.talalm-notebook-layout .talalm-chat-panel {
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.talalm-notebook-layout .talalm-chat-log {
+  flex: 1 1 0;
+  min-height: 0;
+  overscroll-behavior: contain;
 }
 
 .talalm-connector-show {
@@ -542,6 +601,93 @@ body[data-theme="light"] .talalm-badge-processing {
   color: var(--talalm-text);
 }
 
+.talalm-chat-bubble table {
+  width: 100%;
+  margin: 0.75rem 0;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+}
+
+.talalm-chat-bubble th,
+.talalm-chat-bubble td {
+  padding: 0.45rem 0.55rem;
+  border: 1px solid var(--talalm-border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.talalm-chat-bubble th {
+  background: var(--talalm-surface-high);
+  color: var(--talalm-text-strong);
+  font-weight: 700;
+}
+
+.talalm-chat-bubble td {
+  background: var(--talalm-surface-lowest);
+}
+
+.talalm-chat-sources {
+  margin-top: 0.9rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--talalm-border);
+}
+
+.talalm-chat-sources-title {
+  margin-bottom: 0.5rem;
+  color: var(--talalm-text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.talalm-chat-sources-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.talalm-chat-source {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: 100%;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--talalm-border);
+  background: var(--talalm-surface-lowest);
+  color: var(--talalm-text-strong);
+  text-decoration: none;
+}
+
+.talalm-chat-source:hover,
+.talalm-chat-source:focus {
+  border-color: var(--talalm-primary-bright);
+  color: var(--talalm-text-strong);
+}
+
+.talalm-chat-source-disabled,
+.talalm-chat-source-disabled:hover,
+.talalm-chat-source-disabled:focus {
+  border-color: var(--talalm-border);
+  color: var(--talalm-text);
+  cursor: default;
+}
+
+.talalm-chat-source-name,
+.talalm-chat-source-meta {
+  display: block;
+  line-height: 1.25;
+}
+
+.talalm-chat-source-name {
+  font-weight: 700;
+}
+
+.talalm-chat-source-meta {
+  color: var(--talalm-text-muted);
+  font-size: 0.75rem;
+}
+
 .talalm-chat-stats {
   display: grid;
   grid-template-columns: repeat(6, minmax(5.75rem, 1fr));
@@ -762,6 +908,33 @@ label {
 
 .invalid-feedback {
   color: $talalm-danger;
+}
+
+.talalm-range-control {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.85rem;
+  border: 1px solid var(--talalm-border);
+  background: var(--talalm-surface-low);
+}
+
+.talalm-range-value {
+  width: 7rem;
+  text-align: right;
+}
+
+.talalm-range-bounds {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  color: var(--talalm-text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.form-range {
+  accent-color: var(--talalm-primary);
 }
 
 .table {
