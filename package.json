@@ -7,8 +7,7 @@
     "build": "node build.js",
     "start": "node build.js --watch --dev",
     "update_version": "node scripts/update_version.js",
-    "update_packages": "npx npm-check-updates -u",
-    "mock-server": "node mock-server.cjs"
+    "update_packages": "npx npm-check-updates -u"
   },
   "author": "",
   "license": "ISC",
@@ -25,7 +24,6 @@
     "esbuild": "^0.28.0",
     "esbuild-envfile-plugin": "^1.0.7",
     "esbuild-sass-plugin": "^3.7.0",
-    "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "jwt-decode": "^4.0.0",
     "react": "^19.2.6",
