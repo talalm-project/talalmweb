@@ -4,8 +4,7 @@ import remarkGfm from "remark-gfm";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Button, Modal } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowsRotate, faArrowLeft, faChevronLeft, faChevronRight, faDownload, faFileLines, faPaperPlane, faPencil, faPlug, faPlus, faSliders, faTrash, faXmark } from "@fortawesome/free-solid-svg-icons";
-import AdminContent from "../commons/AdminContent";
+import { faArrowLeft, faFloppyDisk, faPencil, faPlus, faTrash, faXmark } from "@fortawesome/free-solid-svg-icons";
 import ConfirmationModal from "../commons/ConfirmationModal";
 import Loader from "../commons/Loader";
 import PageHeader from "../commons/PageHeader";
@@ -13,11 +12,15 @@ import { contextWindowUsage } from "../helpers/ContextWindowHelper";
 import { getInputClassName, renderInputErrors, statusToLabel } from "../helpers/AppHelper";
 import { destroySession } from "../services/AuthService";
 import NotebookService from "../services/NotebookService";
-
-const CONNECTION_TYPES = {
-  local: "Local",
-  openai: "OpenAI"
-};
+import NotebookFilesPanel from "./show/NotebookFilesPanel";
+import NotebookWorkspace from "./show/NotebookWorkspace";
+import {
+  POLLED_NOTEBOOK_FILE_STATUSES,
+  normalizedRetrievalK,
+  parseDownloadFilename,
+  renderResponse,
+  saveBlob
+} from "./show/helpers";
 
 const emptyNotebookFileForm = {
   name: "",
@@ -28,267 +31,55 @@ const emptyNotebookTitleForm = {
   title: ""
 };
 
-const POLLED_NOTEBOOK_FILE_STATUSES = ["pending", "uploading", "processing"];
-const DELETABLE_NOTEBOOK_FILE_STATUSES = ["pending", "active"];
-const RETRIEVAL_K_MIN = 1;
-const RETRIEVAL_K_MAX = 500;
-const RETRIEVAL_K_DEFAULT = 5;
-
-const parseDownloadFilename = (contentDisposition, fallback) => {
-  const encodedMatch = contentDisposition?.match(/filename\*=UTF-8''([^;]+)/i);
-  if (encodedMatch) {
-    return decodeURIComponent(encodedMatch[1]);
-  }
-
-  const filenameMatch = contentDisposition?.match(/filename="?([^";]+)"?/i);
-  return filenameMatch?.[1] || fallback || "notebook-file";
+const emptyNotebookNoteForm = {
+  name: ""
 };
-
-const saveBlob = (blob, filename) => {
-  const url = window.URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  window.URL.revokeObjectURL(url);
-};
-
-const renderValue = (value) => {
-  if (value === null || value === undefined || value === "") {
-    return <span className="text-muted">Not configured</span>;
-  }
-
-  return value;
-};
-
-const formatByteSize = (value) => {
-  if (value === null || value === undefined) {
-    return "Unknown size";
-  }
-
-  const units = ["B", "KB", "MB", "GB"];
-  let size = Number(value);
-  let unitIndex = 0;
-
-  while (size >= 1024 && unitIndex < units.length - 1) {
-    size /= 1024;
-    unitIndex += 1;
-  }
-
-  return `${size.toFixed(unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
-};
-
-const renderResponse = (value) => {
-  if (typeof value === "string") {
-    return value;
-  }
-
-  if (value?.response) {
-    return renderResponse(value.response);
-  }
-
-  if (value?.output_text) {
-    return value.output_text;
-  }
-
-  const firstChoice = value?.choices?.[0];
-  if (firstChoice?.message?.content) {
-    return firstChoice.message.content;
-  }
-  if (firstChoice?.text) {
-    return firstChoice.text;
-  }
-
-  const outputText = value?.output?.flatMap((item) => {
-    return item.content || [];
-  }).find((content) => {
-    return content.type === "output_text" && content.text;
-  });
-  if (outputText) {
-    return outputText.text;
-  }
-
-  return JSON.stringify(value, null, 2);
-};
-
-const renderMetric = (value, formatter = (metricValue) => metricValue) => {
-  if (value === null || value === undefined) {
-    return "n/a";
-  }
-
-  return formatter(value);
-};
-
-const formatNumber = (value) => {
-  return Number(value).toLocaleString();
-};
-
-const formatSeconds = (value) => {
-  return `${Number(value).toFixed(2)}s`;
-};
-
-const formatTokensPerSecond = (value) => {
-  return `${Number(value).toFixed(2)}/s`;
-};
-
-const normalizedRetrievalK = (value) => {
-  const numericValue = Number(value);
-  if (!Number.isFinite(numericValue)) {
-    return RETRIEVAL_K_DEFAULT;
-  }
-
-  return Math.min(RETRIEVAL_K_MAX, Math.max(RETRIEVAL_K_MIN, numericValue));
-};
-
-const renderSources = (sources = []) => {
-  if (!Array.isArray(sources) || sources.length === 0) {
-    return null;
-  }
-
-  return (
-    <div className="talalm-chat-sources">
-      <div className="talalm-chat-sources-title">Sources</div>
-      <div className="talalm-chat-sources-list">
-        {sources.map((source) => {
-          const label = source.name || source.filename || "Notebook file";
-          const detail = source.filename && source.filename !== label ? source.filename : source.content_type;
-          const SourceTag = source.url ? "a" : "span";
-          const sourceLinkProps = source.url ? { href: source.url, rel: "noreferrer", target: "_blank" } : {};
-
-          return (
-            <SourceTag
-              className={`talalm-chat-source${source.url ? "" : " talalm-chat-source-disabled"}`}
-              key={`notebook-source-${source.id}`}
-              {...sourceLinkProps}
-            >
-              <FontAwesomeIcon icon={faFileLines} />
-              <span className="min-w-0">
-                <span className="talalm-chat-source-name text-break">{label}</span>
-                {detail ? (
-                  <span className="talalm-chat-source-meta text-break">{detail}</span>
-                ) : null}
-              </span>
-            </SourceTag>
-          );
-        })}
-      </div>
-    </div>
-  );
-};
-
-class ReindexNotebookCommand extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      isReindexing: false,
-      showConfirmation: false
-    };
-  }
-
-  openConfirmation = () => {
-    this.setState({ showConfirmation: true });
-  };
-
-  closeConfirmation = () => {
-    if (this.state.isReindexing) {
-      return;
-    }
-
-    this.setState({ showConfirmation: false });
-  };
-
-  execute = () => {
-    const { notebook, onAuthError, onCompleted, onError } = this.props;
-    if (this.state.isReindexing || !notebook) {
-      return;
-    }
-
-    this.setState({ isReindexing: true });
-    NotebookService.reindexNotebook(notebook.id)
-      .then((response) => {
-        this.setState({ showConfirmation: false });
-        if (onCompleted) {
-          onCompleted(response);
-        }
-      })
-      .catch((error) => {
-        if (onAuthError && onAuthError(error)) {
-          return;
-        }
-
-        this.setState({ showConfirmation: false });
-        if (onError) {
-          onError(error);
-        }
-      })
-      .finally(() => {
-        this.setState({ isReindexing: false });
-      });
-  };
-
-  render() {
-    const { disabled, fileCount = 0 } = this.props;
-    const { isReindexing, showConfirmation } = this.state;
-
-    return (
-      <React.Fragment>
-        <button
-          className="btn btn-outline-primary talalm-reindex-button d-inline-flex align-items-center justify-content-center gap-2"
-          disabled={disabled || isReindexing || fileCount === 0}
-          onClick={this.openConfirmation}
-          type="button"
-        >
-          <FontAwesomeIcon icon={faArrowsRotate} spin={isReindexing} />
-          <span>{isReindexing ? "Reindexing..." : "Reindex"}</span>
-        </button>
-
-        <ConfirmationModal
-          show={showConfirmation}
-          isLoading={isReindexing}
-          header="Reindex Notebook"
-          content={`Reindex ${fileCount.toLocaleString()} notebook ${fileCount === 1 ? "file" : "files"}? This will delete existing embeddings and queue every file for re-embedding.`}
-          loadingContent="Resetting files for re-embedding..."
-          onPrimaryClicked={this.execute}
-          onSecondaryClicked={this.closeConfirmation}
-        />
-      </React.Fragment>
-    );
-  }
-}
 
 const NotebooksShow = () => {
   const [notebook, setNotebook] = useState(null);
   const [notebookFiles, setNotebookFiles] = useState([]);
+  const [notebookNotes, setNotebookNotes] = useState([]);
+  const [activeNotebookTab, setActiveNotebookTab] = useState("chat");
   const [chatMessages, setChatMessages] = useState([]);
   const [prompt, setPrompt] = useState("");
   const [retrievalK, setRetrievalK] = useState("5");
   const [chatError, setChatError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isFilesLoading, setIsFilesLoading] = useState(true);
+  const [isNotesLoading, setIsNotesLoading] = useState(false);
   const [isInferring, setIsInferring] = useState(false);
-  const [showConfigModal, setShowConfigModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showDeleteFileModal, setShowDeleteFileModal] = useState(false);
+  const [showDeleteNoteModal, setShowDeleteNoteModal] = useState(false);
   const [showClearChatModal, setShowClearChatModal] = useState(false);
   const [showFileModal, setShowFileModal] = useState(false);
+  const [showSaveNoteModal, setShowSaveNoteModal] = useState(false);
   const [showTitleModal, setShowTitleModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeletingFile, setIsDeletingFile] = useState(false);
+  const [isDeletingNote, setIsDeletingNote] = useState(false);
+  const [isSavingNote, setIsSavingNote] = useState(false);
   const [isUpdatingTitle, setIsUpdatingTitle] = useState(false);
   const [downloadingFileIds, setDownloadingFileIds] = useState([]);
+  const [togglingNoteIds, setTogglingNoteIds] = useState([]);
   const [isFilesPanelCollapsed, setIsFilesPanelCollapsed] = useState(false);
   const [selectedNotebookFile, setSelectedNotebookFile] = useState(null);
+  const [selectedNotebookNote, setSelectedNotebookNote] = useState(null);
+  const [selectedNotebookNoteForDelete, setSelectedNotebookNoteForDelete] = useState(null);
+  const [selectedNoteMessage, setSelectedNoteMessage] = useState(null);
   const [isUploadingFile, setIsUploadingFile] = useState(false);
   const [notebookTitleForm, setNotebookTitleForm] = useState(emptyNotebookTitleForm);
   const [notebookTitleErrors, setNotebookTitleErrors] = useState({});
   const [notebookTitleErrorMessage, setNotebookTitleErrorMessage] = useState("");
+  const [notebookNoteForm, setNotebookNoteForm] = useState(emptyNotebookNoteForm);
+  const [notebookNoteErrors, setNotebookNoteErrors] = useState({});
+  const [notebookNoteErrorMessage, setNotebookNoteErrorMessage] = useState("");
   const [notebookFileForm, setNotebookFileForm] = useState(emptyNotebookFileForm);
   const [notebookFileErrors, setNotebookFileErrors] = useState({});
   const [notebookFileErrorMessage, setNotebookFileErrorMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [filesErrorMessage, setFilesErrorMessage] = useState("");
+  const [notesErrorMessage, setNotesErrorMessage] = useState("");
   const chatLogRef = useRef(null);
   const navigate = useNavigate();
   const { id } = useParams();
@@ -342,9 +133,46 @@ const NotebooksShow = () => {
       });
   };
 
+  const loadNotebookNotes = () => {
+    setIsNotesLoading(true);
+
+    NotebookService.fetchNotebookNotes(id)
+      .then((response) => {
+        const records = response.data.records || [];
+        setNotebookNotes(records);
+        setSelectedNotebookNote((currentNote) => {
+          return records.find((notebookNote) => notebookNote.id === currentNote?.id) || records[0] || null;
+        });
+        setNotesErrorMessage("");
+      })
+      .catch((error) => {
+        if ([401, 403].includes(error.response?.status)) {
+          destroySession();
+          navigate("/login");
+          return;
+        }
+
+        setNotesErrorMessage(error.response?.data?.message || "Unable to load notebook notes.");
+      })
+      .finally(() => {
+        setIsNotesLoading(false);
+      });
+  };
+
+  const activateNotebookTab = (tabKey) => {
+    setActiveNotebookTab(tabKey);
+    if (tabKey === "notes") {
+      loadNotebookNotes();
+    }
+  };
+
   useEffect(() => {
     loadNotebook();
     loadNotebookFiles();
+    setActiveNotebookTab("chat");
+    setNotebookNotes([]);
+    setSelectedNotebookNote(null);
+    setNotesErrorMessage("");
   }, [id]);
 
   useEffect(() => {
@@ -443,6 +271,89 @@ const NotebooksShow = () => {
       })
       .finally(() => {
         setIsDeletingFile(false);
+      });
+  };
+
+  const openDeleteNoteModal = (notebookNote) => {
+    setSelectedNotebookNoteForDelete(notebookNote);
+    setShowDeleteNoteModal(true);
+  };
+
+  const closeDeleteNoteModal = () => {
+    if (isDeletingNote) {
+      return;
+    }
+
+    setSelectedNotebookNoteForDelete(null);
+    setShowDeleteNoteModal(false);
+  };
+
+  const handleDeleteNotebookNote = () => {
+    if (isDeletingNote || !selectedNotebookNoteForDelete || !notebook) {
+      return;
+    }
+
+    const notebookNoteId = selectedNotebookNoteForDelete.id;
+    setIsDeletingNote(true);
+    setNotesErrorMessage("");
+
+    NotebookService.deleteNotebookNote(notebook.id, notebookNoteId)
+      .then(() => {
+        const remainingNotes = notebookNotes.filter((notebookNote) => notebookNote.id !== notebookNoteId);
+        setNotebookNotes(remainingNotes);
+        if (selectedNotebookNote?.id === notebookNoteId) {
+          setSelectedNotebookNote(remainingNotes[0] || null);
+        }
+        setShowDeleteNoteModal(false);
+        setSelectedNotebookNoteForDelete(null);
+      })
+      .catch((error) => {
+        if (handleAuthError(error)) {
+          return;
+        }
+
+        setNotesErrorMessage(error.response?.data?.message || "Unable to delete notebook note.");
+        setShowDeleteNoteModal(false);
+        setSelectedNotebookNoteForDelete(null);
+      })
+      .finally(() => {
+        setIsDeletingNote(false);
+      });
+  };
+
+  const handleToggleNotebookNoteContext = (notebookNote) => {
+    if (!notebook || togglingNoteIds.includes(notebookNote.id)) {
+      return;
+    }
+
+    setTogglingNoteIds((currentIds) => {
+      return [...currentIds, notebookNote.id];
+    });
+    setNotesErrorMessage("");
+
+    NotebookService.toggleNotebookNoteContext(notebook.id, notebookNote.id)
+      .then((response) => {
+        const updatedNote = response.data;
+        setNotebookNotes((currentNotes) => {
+          return currentNotes.map((currentNote) => {
+            return currentNote.id === updatedNote.id ? updatedNote : currentNote;
+          });
+        });
+        setSelectedNotebookNote((currentNote) => {
+          return currentNote?.id === updatedNote.id ? updatedNote : currentNote;
+        });
+      })
+      .catch((error) => {
+        if (handleAuthError(error)) {
+          return;
+        }
+
+        setNotesErrorMessage(error.response?.data?.message || "Unable to update notebook note context.");
+      })
+      .finally(() => {
+        setTogglingNoteIds((currentIds) => {
+          return currentIds.filter((noteId) => noteId !== notebookNote.id);
+        });
       });
   };
 
@@ -559,6 +470,81 @@ const NotebooksShow = () => {
     setNotebookFileForm(emptyNotebookFileForm);
     setNotebookFileErrors({});
     setNotebookFileErrorMessage("");
+  };
+
+  const openSaveNoteModal = (message) => {
+    setSelectedNoteMessage(message);
+    setNotebookNoteForm(emptyNotebookNoteForm);
+    setNotebookNoteErrors({});
+    setNotebookNoteErrorMessage("");
+    setShowSaveNoteModal(true);
+  };
+
+  const closeSaveNoteModal = () => {
+    if (isSavingNote) {
+      return;
+    }
+
+    setShowSaveNoteModal(false);
+    setSelectedNoteMessage(null);
+    setNotebookNoteForm(emptyNotebookNoteForm);
+    setNotebookNoteErrors({});
+    setNotebookNoteErrorMessage("");
+  };
+
+  const handleNotebookNoteFormChange = (event) => {
+    const { name, value } = event.target;
+
+    setNotebookNoteForm((currentValues) => {
+      return {
+        ...currentValues,
+        [name]: value
+      };
+    });
+  };
+
+  const handleCreateNotebookNote = (event) => {
+    event.preventDefault();
+    if (isSavingNote || !notebook || !selectedNoteMessage) {
+      return;
+    }
+
+    const content = renderResponse(selectedNoteMessage.content);
+    setIsSavingNote(true);
+    setNotebookNoteErrors({});
+    setNotebookNoteErrorMessage("");
+
+    NotebookService.createNotebookNote(notebook.id, {
+      name: notebookNoteForm.name,
+      data: {
+        content,
+        response: selectedNoteMessage.content
+      }
+    })
+      .then((response) => {
+        setNotebookNotes((currentNotes) => {
+          return [response.data, ...currentNotes];
+        });
+        setSelectedNotebookNote(response.data);
+        setShowSaveNoteModal(false);
+        setSelectedNoteMessage(null);
+        setNotebookNoteForm(emptyNotebookNoteForm);
+      })
+      .catch((error) => {
+        if (handleAuthError(error)) {
+          return;
+        }
+
+        if (error.response?.status === 422) {
+          setNotebookNoteErrors(error.response.data);
+          return;
+        }
+
+        setNotebookNoteErrorMessage(error.response?.data?.message || "Unable to save notebook note.");
+      })
+      .finally(() => {
+        setIsSavingNote(false);
+      });
   };
 
   const handleNotebookFileFormChange = (event) => {
@@ -727,16 +713,6 @@ const NotebooksShow = () => {
               <FontAwesomeIcon icon={faTrash} />
               <span>Delete</span>
             </button>
-            <button
-              className="btn btn-outline-primary d-inline-flex align-items-center gap-2"
-              onClick={() => {
-                setShowConfigModal(true);
-              }}
-              type="button"
-            >
-              <FontAwesomeIcon icon={faSliders} />
-              <span>Config</span>
-            </button>
             <Link className="btn btn-outline-secondary d-inline-flex align-items-center gap-2" to="/notebooks">
               <FontAwesomeIcon icon={faArrowLeft} />
               <span>Back</span>
@@ -746,304 +722,59 @@ const NotebooksShow = () => {
       />
 
       <div className={`row g-4 align-items-stretch talalm-notebook-layout${isFilesPanelCollapsed ? " talalm-notebook-layout-files-collapsed" : ""}`}>
-        <div className={isFilesPanelCollapsed ? "col-12 col-xl-auto talalm-notebook-files-column is-collapsed" : "col-12 col-xl-4 talalm-notebook-files-column"}>
-          {isFilesPanelCollapsed ? (
-            <div className="talalm-notebook-files-rail">
-              <button
-                aria-label="Expand files panel"
-                className="btn btn-outline-secondary btn-sm talalm-icon-button"
-                onClick={() => {
-                  setIsFilesPanelCollapsed(false);
-                }}
-                title="Expand files"
-                type="button"
-              >
-                <FontAwesomeIcon icon={faChevronRight} />
-              </button>
-              <FontAwesomeIcon icon={faFileLines} />
-              <span>{notebookFiles.length}</span>
-            </div>
-          ) : (
-            <AdminContent
-              title="Files"
-              headerActions={[
-                <button
-                  aria-label="Collapse files panel"
-                  className="btn btn-outline-secondary btn-sm talalm-icon-button"
-                  key="collapse-files"
-                  onClick={() => {
-                    setIsFilesPanelCollapsed(true);
-                  }}
-                  title="Collapse files"
-                  type="button"
-                >
-                  <FontAwesomeIcon icon={faChevronLeft} />
-                </button>,
-                <button className="btn btn-primary btn-sm d-inline-flex align-items-center gap-2" key="new-file" onClick={openFileModal} type="button">
-                  <FontAwesomeIcon icon={faPlus} />
-                  <span>New File</span>
-                </button>
-              ]}
-            >
-              <div className="talalm-notebook-files">
-                {isFilesLoading ? (
-                  <Loader />
-                ) : (
-                  <React.Fragment>
-                    {filesErrorMessage ? (
-                      <div className="alert alert-danger">
-                        {filesErrorMessage}
-                      </div>
-                    ) : null}
-
-                    {!filesErrorMessage && notebookFiles.length === 0 ? (
-                      <div className="talalm-empty-state">
-                        <FontAwesomeIcon icon={faFileLines} />
-                        <span>No files.</span>
-                      </div>
-                    ) : null}
-
-                    {!filesErrorMessage && notebookFiles.map((notebookFile) => {
-                      return (
-                        <div className="talalm-notebook-file" key={notebookFile.id}>
-                          <div className="d-flex align-items-start justify-content-between gap-2">
-                            <div className="min-w-0">
-                              <div className="talalm-notebook-file-name text-break">
-                                {notebookFile.name}
-                              </div>
-                              <div className="talalm-notebook-file-meta text-break">
-                                {notebookFile.filename}
-                              </div>
-                            </div>
-                            <div className="d-inline-flex align-items-center gap-2">
-                              <div className="talalm-notebook-file-status">
-                                {notebookFile.status === "processing" ? (
-                                  <span className="talalm-notebook-file-processing" aria-label="Processing file vectors" role="status">
-                                    <span className="spinner-border spinner-border-sm" aria-hidden="true" />
-                                  </span>
-                                ) : null}
-                                {statusToLabel(notebookFile.status)}
-                              </div>
-                              <button
-                                aria-label={`Download ${notebookFile.name}`}
-                                className="btn btn-outline-primary btn-sm talalm-icon-button"
-                                disabled={downloadingFileIds.includes(notebookFile.id)}
-                                onClick={() => {
-                                  handleDownloadFile(notebookFile);
-                                }}
-                                title={downloadingFileIds.includes(notebookFile.id) ? "Downloading file" : "Download file"}
-                                type="button"
-                              >
-                                <FontAwesomeIcon icon={faDownload} />
-                              </button>
-                              <button
-                                aria-label={`Delete ${notebookFile.name}`}
-                                className="btn btn-outline-danger btn-sm talalm-icon-button"
-                                disabled={!DELETABLE_NOTEBOOK_FILE_STATUSES.includes(notebookFile.status)}
-                                onClick={() => {
-                                  openDeleteFileModal(notebookFile);
-                                }}
-                                title={
-                                  DELETABLE_NOTEBOOK_FILE_STATUSES.includes(notebookFile.status)
-                                    ? "Delete file"
-                                    : "Only pending or active files can be deleted"
-                                }
-                                type="button"
-                              >
-                                <FontAwesomeIcon icon={faTrash} />
-                              </button>
-                            </div>
-                          </div>
-                          <div className="talalm-notebook-file-meta mt-2">
-                            {formatByteSize(notebookFile.byte_size)}
-                            {notebookFile.content_type ? ` · ${notebookFile.content_type}` : ""}
-                          </div>
-                        </div>
-                      );
-                    })}
-
-                    <div className="talalm-notebook-files-footer">
-                      <ReindexNotebookCommand
-                        disabled={isFilesLoading}
-                        fileCount={notebookFiles.length}
-                        notebook={notebook}
-                        onAuthError={handleAuthError}
-                        onCompleted={() => {
-                          loadNotebookFiles();
-                          loadNotebook();
-                        }}
-                        onError={(error) => {
-                          setFilesErrorMessage(error.response?.data?.message || "Unable to reindex notebook files.");
-                        }}
-                      />
-                    </div>
-                  </React.Fragment>
-                )}
-              </div>
-            </AdminContent>
-          )}
-        </div>
+        <NotebookFilesPanel
+          notebook={notebook}
+          notebookFiles={notebookFiles}
+          isFilesLoading={isFilesLoading}
+          filesErrorMessage={filesErrorMessage}
+          isFilesPanelCollapsed={isFilesPanelCollapsed}
+          downloadingFileIds={downloadingFileIds}
+          onCollapse={() => {
+            setIsFilesPanelCollapsed(true);
+          }}
+          onExpand={() => {
+            setIsFilesPanelCollapsed(false);
+          }}
+          onNewFile={openFileModal}
+          onDownloadFile={handleDownloadFile}
+          onDeleteFile={openDeleteFileModal}
+          onAuthError={handleAuthError}
+          onReindexCompleted={() => {
+            loadNotebookFiles();
+            loadNotebook();
+          }}
+          onReindexError={(error) => {
+            setFilesErrorMessage(error.response?.data?.message || "Unable to reindex notebook files.");
+          }}
+        />
 
         <div className={isFilesPanelCollapsed ? "col-12 col-xl talalm-notebook-chat-column" : "col-12 col-xl-8 talalm-notebook-chat-column"}>
-          <AdminContent
-            title="Chat"
-            headerActions={[
-              <button
-                className="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-2"
-                disabled={isInferring || (chatMessages.length === 0 && !prompt.trim())}
-                key="clear-chat"
-                onClick={() => {
-                  setShowClearChatModal(true);
-                }}
-                type="button"
-              >
-                <FontAwesomeIcon icon={faXmark} />
-                <span>Clear</span>
-              </button>
-            ]}
-          >
-            <div className="talalm-chat-panel">
-                  <div className="talalm-chat-log" ref={chatLogRef}>
-                    {chatMessages.length === 0 ? (
-                      <div className="talalm-chat-empty text-muted">
-                        Send a prompt to chat with this notebook.
-                      </div>
-                    ) : (
-                      chatMessages.map((message, index) => {
-                        const isUser = message.role === "user";
-
-                        return (
-                          <div className={`talalm-chat-row ${isUser ? "talalm-chat-row-user" : "talalm-chat-row-connector"}`} key={`notebook-chat-message-${index}`}>
-                            <div className="talalm-chat-meta">
-                              {isUser ? "You" : "Notebook"}
-                            </div>
-                            <div className="talalm-chat-bubble">
-                              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                {renderResponse(message.content)}
-                              </ReactMarkdown>
-                              {!isUser ? renderSources(message.content?.sources) : null}
-                              {!isUser && message.content?.details ? (
-                                <div className="talalm-chat-stats">
-                                  <div className="talalm-chat-stat">
-                                    <span>Prompt</span>
-                                    <strong>{renderMetric(message.content.details.prompt_tokens, formatNumber)}</strong>
-                                  </div>
-                                  <div className="talalm-chat-stat">
-                                    <span>Completion</span>
-                                    <strong>{renderMetric(message.content.details.completion_tokens, formatNumber)}</strong>
-                                  </div>
-                                  <div className="talalm-chat-stat">
-                                    <span>Total</span>
-                                    <strong>{renderMetric(message.content.details.total_tokens, formatNumber)}</strong>
-                                  </div>
-                                  <div className="talalm-chat-stat">
-                                    <span>Elapsed</span>
-                                    <strong>{renderMetric(message.content.details.elapsed_seconds, formatSeconds)}</strong>
-                                  </div>
-                                  <div className="talalm-chat-stat">
-                                    <span>Tokens/sec</span>
-                                    <strong>{renderMetric(message.content.details.tokens_per_second, formatTokensPerSecond)}</strong>
-                                  </div>
-                                </div>
-                              ) : null}
-                            </div>
-                          </div>
-                        );
-                      })
-                    )}
-                    {isInferring ? (
-                      <div className="talalm-chat-row talalm-chat-row-connector">
-                        <div className="talalm-chat-meta">Notebook</div>
-                        <div className="talalm-chat-bubble talalm-chat-bubble-loading">
-                          <span className="talalm-chat-loader" aria-label="Thinking" role="status">
-                            <span />
-                            <span />
-                            <span />
-                          </span>
-                        </div>
-                      </div>
-                    ) : null}
-                  </div>
-
-                  {chatError ? (
-                    <div className="alert alert-danger mt-3 mb-0">
-                      {chatError}
-                    </div>
-                  ) : null}
-
-                  <form className="talalm-chat-composer mt-3" onSubmit={handlePromptSubmit}>
-                    <div className="talalm-chat-retrieval">
-                      <div className="talalm-range-control">
-                        <div className="d-flex align-items-center justify-content-between gap-3">
-                          <label className="form-label mb-0" htmlFor="notebook-retrieval-k">
-                            Context chunks
-                          </label>
-                          <input
-                            className="form-control form-control-sm talalm-range-value"
-                            disabled={isInferring}
-                            max={RETRIEVAL_K_MAX}
-                            min={RETRIEVAL_K_MIN}
-                            onBlur={() => {
-                              setRetrievalK(String(normalizedRetrievalK(retrievalK)));
-                            }}
-                            onChange={(event) => {
-                              setRetrievalK(event.target.value);
-                            }}
-                            step="1"
-                            type="number"
-                            value={retrievalK}
-                          />
-                        </div>
-                        <input
-                          className="form-range"
-                          disabled={isInferring}
-                          id="notebook-retrieval-k"
-                          max={RETRIEVAL_K_MAX}
-                          min={RETRIEVAL_K_MIN}
-                          onChange={(event) => {
-                            setRetrievalK(event.target.value);
-                          }}
-                          step="1"
-                          type="range"
-                          value={normalizedRetrievalK(retrievalK)}
-                        />
-                        <div className="talalm-range-bounds">
-                          <span>Min {RETRIEVAL_K_MIN.toLocaleString()}</span>
-                          <span>Default {RETRIEVAL_K_DEFAULT.toLocaleString()}</span>
-                          <span>Max {RETRIEVAL_K_MAX.toLocaleString()}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <textarea
-                      className="form-control"
-                      disabled={isInferring}
-                      onChange={(event) => {
-                        setPrompt(event.target.value);
-                      }}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter" && !event.shiftKey && !event.altKey) {
-                          handlePromptSubmit(event);
-                        }
-                      }}
-                      placeholder="Write a prompt"
-                      rows="3"
-                      value={prompt}
-                    />
-                    <div className="talalm-chat-composer-footer">
-                      <div
-                        className={`talalm-context-meter talalm-context-meter-${promptContextUsage.level}`}
-                        title={`${promptContextUsage.remainingTokens.toLocaleString()} of ${promptContextUsage.contextWindow.toLocaleString()} context tokens left`}
-                      >
-                        {promptContextUsage.remainingPercent}% context left
-                      </div>
-                      <button className="btn btn-primary talalm-chat-send-button d-inline-flex align-items-center gap-2" disabled={isInferring || !prompt.trim()} type="submit">
-                        <FontAwesomeIcon icon={faPaperPlane} />
-                        <span>{isInferring ? "Sending..." : "Send"}</span>
-                      </button>
-                    </div>
-                  </form>
-            </div>
-          </AdminContent>
+          <NotebookWorkspace
+            notebook={notebook}
+            activeNotebookTab={activeNotebookTab}
+            activateNotebookTab={activateNotebookTab}
+            chatMessages={chatMessages}
+            chatError={chatError}
+            chatLogRef={chatLogRef}
+            isInferring={isInferring}
+            prompt={prompt}
+            promptContextUsage={promptContextUsage}
+            retrievalK={retrievalK}
+            setPrompt={setPrompt}
+            setRetrievalK={setRetrievalK}
+            handlePromptSubmit={handlePromptSubmit}
+            openSaveNoteModal={openSaveNoteModal}
+            setShowClearChatModal={setShowClearChatModal}
+            notebookNotes={notebookNotes}
+            selectedNotebookNote={selectedNotebookNote}
+            setSelectedNotebookNote={setSelectedNotebookNote}
+            isNotesLoading={isNotesLoading}
+            notesErrorMessage={notesErrorMessage}
+            togglingNoteIds={togglingNoteIds}
+            handleToggleNotebookNoteContext={handleToggleNotebookNoteContext}
+            openDeleteNoteModal={openDeleteNoteModal}
+            navigate={navigate}
+          />
         </div>
       </div>
 
@@ -1110,99 +841,6 @@ const NotebooksShow = () => {
             </Button>
           </Modal.Footer>
         </form>
-      </Modal>
-
-      <Modal
-        show={showConfigModal}
-        onHide={() => {
-          setShowConfigModal(false);
-        }}
-        size="lg"
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>
-            Notebook Config
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <div className="row g-3">
-            <div className="col-12">
-              <div className="talalm-detail-block">
-                <div className="talalm-label mb-1">System Prompt</div>
-                <div className="talalm-detail-value text-break">{renderValue(notebook.system_prompt)}</div>
-              </div>
-            </div>
-            <div className="col-12 col-lg-6">
-              <div className="talalm-detail-block">
-                <div className="talalm-label mb-1">Code</div>
-                <div className="talalm-detail-value">{renderValue(notebook.connector?.code)}</div>
-              </div>
-            </div>
-            <div className="col-12 col-lg-6">
-              <div className="talalm-detail-block">
-                <div className="talalm-label mb-1">Name</div>
-                <div className="talalm-detail-value">{renderValue(notebook.connector?.name)}</div>
-              </div>
-            </div>
-            <div className="col-12 col-lg-6">
-              <div className="talalm-detail-block">
-                <div className="talalm-label mb-1">Connection Type</div>
-                <div className="talalm-detail-value">
-                  {CONNECTION_TYPES[notebook.connector?.connection_type] || renderValue(notebook.connector?.connection_type)}
-                </div>
-              </div>
-            </div>
-            <div className="col-12 col-lg-6">
-              <div className="talalm-detail-block">
-                <div className="talalm-label mb-1">Embedding Name</div>
-                <div className="talalm-detail-value">{renderValue(notebook.connector?.embedding_name)}</div>
-              </div>
-            </div>
-            <div className="col-12">
-              <div className="talalm-detail-block">
-                <div className="talalm-label mb-1">Local File Path</div>
-                <div className="talalm-detail-value text-break">{renderValue(notebook.connector?.local_file_path)}</div>
-              </div>
-            </div>
-            <div className="col-12">
-              <div className="talalm-detail-block">
-                <div className="talalm-label mb-1">Embedding Local File Path</div>
-                <div className="talalm-detail-value text-break">{renderValue(notebook.connector?.embedding_local_file_path)}</div>
-              </div>
-            </div>
-            <div className="col-12">
-              <div className="talalm-detail-block">
-                <div className="talalm-label mb-1">Data</div>
-                <pre className="talalm-json-block"><code>{JSON.stringify(notebook.connector?.data || {}, null, 2)}</code></pre>
-              </div>
-            </div>
-          </div>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button
-            className="d-inline-flex align-items-center gap-2"
-            disabled={!notebook.connector?.id}
-            onClick={() => {
-              navigate(`/connectors/${notebook.connector.id}`);
-            }}
-            type="button"
-            variant="primary"
-          >
-            <FontAwesomeIcon icon={faPlug} />
-            <span>Go to Connector</span>
-          </Button>
-          <Button
-            className="d-inline-flex align-items-center gap-2"
-            onClick={() => {
-              setShowConfigModal(false);
-            }}
-            type="button"
-            variant="secondary"
-          >
-            <FontAwesomeIcon icon={faXmark} />
-            <span>Close</span>
-          </Button>
-        </Modal.Footer>
       </Modal>
 
       <Modal
@@ -1296,6 +934,81 @@ const NotebooksShow = () => {
         </form>
       </Modal>
 
+      <Modal
+        backdrop={isSavingNote ? "static" : true}
+        keyboard={!isSavingNote}
+        show={showSaveNoteModal}
+        onHide={closeSaveNoteModal}
+        size="lg"
+      >
+        <form onSubmit={handleCreateNotebookNote}>
+          <Modal.Header closeButton={!isSavingNote}>
+            <Modal.Title>Save Response</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <div className="row g-3">
+              {notebookNoteErrorMessage ? (
+                <div className="col-12">
+                  <div className="alert alert-danger mb-0">
+                    {notebookNoteErrorMessage}
+                  </div>
+                </div>
+              ) : null}
+
+              <div className="col-12">
+                <label className="form-label" htmlFor="notebook-note-name">
+                  Name
+                </label>
+                <input
+                  autoFocus
+                  className={getInputClassName(notebookNoteErrors, "name")}
+                  disabled={isSavingNote}
+                  id="notebook-note-name"
+                  name="name"
+                  onChange={handleNotebookNoteFormChange}
+                  value={notebookNoteForm.name}
+                />
+                {renderInputErrors(notebookNoteErrors, "name")}
+              </div>
+
+              <div className="col-12">
+                <div className="talalm-label mb-2">Preview</div>
+                <div className="talalm-note-save-preview">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {selectedNoteMessage ? renderResponse(selectedNoteMessage.content) : ""}
+                  </ReactMarkdown>
+                </div>
+              </div>
+            </div>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button
+              className="d-inline-flex align-items-center gap-2"
+              disabled={isSavingNote || !notebookNoteForm.name.trim()}
+              type="submit"
+              variant="primary"
+            >
+              {isSavingNote ? (
+                <span className="spinner-border spinner-border-sm" aria-hidden="true" />
+              ) : (
+                <FontAwesomeIcon icon={faFloppyDisk} />
+              )}
+              <span>{isSavingNote ? "Saving..." : "Save Note"}</span>
+            </Button>
+            <Button
+              className="d-inline-flex align-items-center gap-2"
+              disabled={isSavingNote}
+              onClick={closeSaveNoteModal}
+              type="button"
+              variant="secondary"
+            >
+              <FontAwesomeIcon icon={faXmark} />
+              <span>Close</span>
+            </Button>
+          </Modal.Footer>
+        </form>
+      </Modal>
+
       <ConfirmationModal
         show={showDeleteFileModal}
         isLoading={isDeletingFile}
@@ -1304,6 +1017,16 @@ const NotebooksShow = () => {
         loadingContent="Deleting file and associated assets..."
         onPrimaryClicked={handleDeleteFile}
         onSecondaryClicked={closeDeleteFileModal}
+      />
+
+      <ConfirmationModal
+        show={showDeleteNoteModal}
+        isLoading={isDeletingNote}
+        header="Delete Note"
+        content={`Delete ${selectedNotebookNoteForDelete?.name || "this note"}?`}
+        loadingContent="Deleting note..."
+        onPrimaryClicked={handleDeleteNotebookNote}
+        onSecondaryClicked={closeDeleteNoteModal}
       />
 
       <ConfirmationModal

@@ -21,6 +21,30 @@ const NotebookService = {
     });
   },
 
+  fetchNotebookNotes(notebookId) {
+    return axios.get(`${API_BASE_URL}/notebooks/${notebookId}/notebook_notes`, {
+      headers: buildHeaders()
+    });
+  },
+
+  createNotebookNote(notebookId, args) {
+    return axios.post(`${API_BASE_URL}/notebooks/${notebookId}/notebook_notes`, args, {
+      headers: buildHeaders()
+    });
+  },
+
+  deleteNotebookNote(notebookId, notebookNoteId) {
+    return axios.delete(`${API_BASE_URL}/notebooks/${notebookId}/notebook_notes/${notebookNoteId}`, {
+      headers: buildHeaders()
+    });
+  },
+
+  toggleNotebookNoteContext(notebookId, notebookNoteId) {
+    return axios.post(`${API_BASE_URL}/notebooks/${notebookId}/notebook_notes/${notebookNoteId}/toggle_context`, {}, {
+      headers: buildHeaders()
+    });
+  },
+
   createNotebookFile(notebookId, args) {
     const formData = new FormData();
     formData.append("name", args.name);

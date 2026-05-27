@@ -41,7 +41,7 @@ npm run start
 
 ## Routing
 
-Public routes live in `src/js/App.js` and render without authentication. The default public page is `Home` at `/`, and the login screen is at `/login`. Authenticated routes render inside the sidebar layout once a session exists.
+Public routes live in `src/js/App.js` and render without authentication. The default public page is the login screen at `/`, and `/login` renders the same screen. Authenticated routes render inside the sidebar layout once a session exists.
 
 ## Connectors
 

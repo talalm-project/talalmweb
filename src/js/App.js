@@ -11,7 +11,6 @@ import {
 
 import Dashboard from "./Dashboard";
 import Doctor from "./Doctor";
-import Home from "./Home";
 import LocalModelsIndex from "./LocalModelsIndex";
 import NotebooksIndex from "./notebooks/Index";
 import NotebooksShow from "./notebooks/Show";
@@ -41,7 +40,7 @@ const PublicApp = () => {
     <Routes>
       <Route
         path="/"
-        element={<Home />}
+        element={<Login />}
       />
       <Route
         path="/login"
