@@ -94,6 +94,7 @@ if(watch ||  dev) {
       css: 'assets/styles/index.css'
     });
     debugMode.serve({
+      host: '0.0.0.0',
       servedir: 'public',
       port: port,
       fallback: 'index.html'
