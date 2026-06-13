@@ -1,0 +1,7 @@
+.git
+node_modules
+public/assets
+public/index.html
+.env
+.env.*
+npm-debug.log
