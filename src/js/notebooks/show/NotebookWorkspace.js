@@ -29,7 +29,7 @@ import {
   renderValue
 } from "./helpers";
 
-const renderSources = (sources = []) => {
+const renderSources = (sources = [], onDownloadSource, downloadingFileIds = []) => {
   if (!Array.isArray(sources) || sources.length === 0) {
     return null;
   }
@@ -41,23 +41,26 @@ const renderSources = (sources = []) => {
         {sources.map((source) => {
           const label = source.name || source.filename || "Notebook file";
           const detail = source.filename && source.filename !== label ? source.filename : source.content_type;
-          const SourceTag = source.url ? "a" : "span";
-          const sourceLinkProps = source.url ? { href: source.url, rel: "noreferrer", target: "_blank" } : {};
+          const isDownloading = downloadingFileIds.includes(source.id);
 
           return (
-            <SourceTag
-              className={`talalm-chat-source${source.url ? "" : " talalm-chat-source-disabled"}`}
+            <button
+              className="talalm-chat-source"
+              disabled={isDownloading || !source.id}
               key={`notebook-source-${source.id}`}
-              {...sourceLinkProps}
+              onClick={() => {
+                onDownloadSource(source);
+              }}
+              type="button"
             >
               <FontAwesomeIcon icon={faFileLines} />
               <span className="min-w-0">
-                <span className="talalm-chat-source-name text-break">{label}</span>
+                <span className="talalm-chat-source-name text-break">{isDownloading ? "Downloading..." : label}</span>
                 {detail ? (
                   <span className="talalm-chat-source-meta text-break">{detail}</span>
                 ) : null}
               </span>
-            </SourceTag>
+            </button>
           );
         })}
       </div>
@@ -76,8 +79,13 @@ const NotebookWorkspace = ({
   prompt,
   promptContextUsage,
   retrievalK,
+  manualRetrieval,
+  manualRetrievalFileIds,
+  notebookFiles,
   setPrompt,
   setRetrievalK,
+  setManualRetrieval,
+  setManualRetrievalFileIds,
   handlePromptSubmit,
   openSaveNoteModal,
   setShowClearChatModal,
@@ -89,6 +97,8 @@ const NotebookWorkspace = ({
   togglingNoteIds,
   handleToggleNotebookNoteContext,
   openDeleteNoteModal,
+  downloadingFileIds,
+  onDownloadFile,
   navigate
 }) => {
   return (
@@ -119,13 +129,20 @@ const NotebookWorkspace = ({
             chatMessages={chatMessages}
             chatError={chatError}
             chatLogRef={chatLogRef}
+            downloadingFileIds={downloadingFileIds}
             isInferring={isInferring}
             prompt={prompt}
             promptContextUsage={promptContextUsage}
             retrievalK={retrievalK}
+            manualRetrieval={manualRetrieval}
+            manualRetrievalFileIds={manualRetrievalFileIds}
+            notebookFiles={notebookFiles}
             setPrompt={setPrompt}
             setRetrievalK={setRetrievalK}
+            setManualRetrieval={setManualRetrieval}
+            setManualRetrievalFileIds={setManualRetrievalFileIds}
             handlePromptSubmit={handlePromptSubmit}
+            onDownloadFile={onDownloadFile}
             openSaveNoteModal={openSaveNoteModal}
           />
         ) : activeNotebookTab === "notes" ? (
@@ -179,15 +196,26 @@ const ChatPanel = ({
   chatMessages,
   chatError,
   chatLogRef,
+  downloadingFileIds,
   isInferring,
   prompt,
   promptContextUsage,
   retrievalK,
+  manualRetrieval,
+  manualRetrievalFileIds,
+  notebookFiles,
   setPrompt,
   setRetrievalK,
+  setManualRetrieval,
+  setManualRetrievalFileIds,
   handlePromptSubmit,
+  onDownloadFile,
   openSaveNoteModal
 }) => {
+  const availableFiles = Array.isArray(notebookFiles) ? notebookFiles.filter((notebookFile) => {
+    return notebookFile.status !== "failed";
+  }) : [];
+
   return (
     <div className="talalm-chat-panel" role="tabpanel">
       <div className="talalm-chat-log" ref={chatLogRef}>
@@ -197,7 +225,15 @@ const ChatPanel = ({
           </div>
         ) : (
           chatMessages.map((message, index) => {
-            return <ChatMessage key={`notebook-chat-message-${index}`} message={message} openSaveNoteModal={openSaveNoteModal} />;
+            return (
+              <ChatMessage
+                downloadingFileIds={downloadingFileIds}
+                key={`notebook-chat-message-${index}`}
+                message={message}
+                onDownloadFile={onDownloadFile}
+                openSaveNoteModal={openSaveNoteModal}
+              />
+            );
           })
         )}
         {isInferring ? (
@@ -222,6 +258,21 @@ const ChatPanel = ({
 
       <form className="talalm-chat-composer mt-3" onSubmit={handlePromptSubmit}>
         <div className="talalm-chat-retrieval">
+          <div className="form-check form-switch mb-3">
+            <input
+              checked={manualRetrieval}
+              className="form-check-input"
+              disabled={isInferring || availableFiles.length === 0}
+              id="notebook-manual-retrieval"
+              onChange={(event) => {
+                setManualRetrieval(event.target.checked);
+              }}
+              type="checkbox"
+            />
+            <label className="form-check-label" htmlFor="notebook-manual-retrieval">
+              Manual retrieval
+            </label>
+          </div>
           <div className="talalm-range-control">
             <div className="d-flex align-items-center justify-content-between gap-3">
               <label className="form-label mb-0" htmlFor="notebook-retrieval-k">
@@ -229,7 +280,7 @@ const ChatPanel = ({
               </label>
               <input
                 className="form-control form-control-sm talalm-range-value"
-                disabled={isInferring}
+                disabled={isInferring || manualRetrieval}
                 max={RETRIEVAL_K_MAX}
                 min={RETRIEVAL_K_MIN}
                 onBlur={() => {
@@ -245,7 +296,7 @@ const ChatPanel = ({
             </div>
             <input
               className="form-range"
-              disabled={isInferring}
+              disabled={isInferring || manualRetrieval}
               id="notebook-retrieval-k"
               max={RETRIEVAL_K_MAX}
               min={RETRIEVAL_K_MIN}
@@ -295,7 +346,7 @@ const ChatPanel = ({
   );
 };
 
-const ChatMessage = ({ message, openSaveNoteModal }) => {
+const ChatMessage = ({ message, downloadingFileIds, onDownloadFile, openSaveNoteModal }) => {
   const isUser = message.role === "user";
 
   return (
@@ -322,7 +373,7 @@ const ChatMessage = ({ message, openSaveNoteModal }) => {
         <ReactMarkdown remarkPlugins={[remarkGfm]}>
           {renderResponse(message.content)}
         </ReactMarkdown>
-        {!isUser ? renderSources(message.content?.sources) : null}
+        {!isUser ? renderSources(message.content?.sources, onDownloadFile, downloadingFileIds) : null}
         {!isUser && message.content?.details ? (
           <div className="talalm-chat-stats">
             <ChatStat label="Prompt" value={message.content.details.prompt_tokens} formatter={formatNumber} />

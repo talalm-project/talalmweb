@@ -261,6 +261,10 @@ body[data-theme="light"] .talalm-badge-processing {
   line-height: 1.35;
 }
 
+.talalm-notebook-file-context-toggle {
+  margin-top: 0.8rem;
+}
+
 .talalm-notebook-file-status {
   display: inline-flex;
   align-items: center;
@@ -920,7 +924,15 @@ body[data-theme="light"] .talalm-badge-processing {
   border: 1px solid var(--talalm-border);
   background: var(--talalm-surface-lowest);
   color: var(--talalm-text-strong);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
   text-decoration: none;
+}
+
+.talalm-chat-source:disabled {
+  cursor: wait;
+  opacity: 0.75;
 }
 
 .talalm-chat-source:hover,

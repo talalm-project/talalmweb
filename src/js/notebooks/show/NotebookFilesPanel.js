@@ -14,6 +14,10 @@ const NotebookFilesPanel = ({
   filesErrorMessage,
   isFilesPanelCollapsed,
   downloadingFileIds,
+  isInferring,
+  manualRetrieval,
+  manualRetrievalFileIds,
+  setManualRetrievalFileIds,
   onCollapse,
   onExpand,
   onNewFile,
@@ -23,6 +27,27 @@ const NotebookFilesPanel = ({
   onReindexCompleted,
   onReindexError
 }) => {
+  const selectableFiles = notebookFiles.filter((notebookFile) => {
+    return notebookFile.status !== "failed";
+  });
+  const selectedManualRetrievalCount = manualRetrievalFileIds.filter((fileId) => {
+    return selectableFiles.some((notebookFile) => {
+      return notebookFile.id === fileId;
+    });
+  }).length;
+
+  const toggleManualRetrievalFile = (fileId) => {
+    setManualRetrievalFileIds((currentIds) => {
+      if (currentIds.includes(fileId)) {
+        return currentIds.filter((currentId) => {
+          return currentId !== fileId;
+        });
+      }
+
+      return [...currentIds, fileId];
+    });
+  };
+
   return (
     <div className={isFilesPanelCollapsed ? "col-12 col-xl-auto talalm-notebook-files-column is-collapsed" : "col-12 col-xl-4 talalm-notebook-files-column"}>
       {isFilesPanelCollapsed ? (
@@ -37,7 +62,7 @@ const NotebookFilesPanel = ({
             <FontAwesomeIcon icon={faChevronRight} />
           </button>
           <FontAwesomeIcon icon={faFileLines} />
-          <span>{notebookFiles.length}</span>
+          <span>{manualRetrieval ? selectedManualRetrievalCount : notebookFiles.length}</span>
         </div>
       ) : (
         <AdminContent
@@ -132,6 +157,23 @@ const NotebookFilesPanel = ({
                         {formatByteSize(notebookFile.byte_size)}
                         {notebookFile.content_type ? ` · ${notebookFile.content_type}` : ""}
                       </div>
+                      {manualRetrieval && notebookFile.status !== "failed" ? (
+                        <div className="form-check form-switch talalm-notebook-file-context-toggle">
+                          <input
+                            checked={manualRetrievalFileIds.includes(notebookFile.id)}
+                            className="form-check-input"
+                            disabled={isInferring}
+                            id={`notebook-file-context-${notebookFile.id}`}
+                            onChange={() => {
+                              toggleManualRetrievalFile(notebookFile.id);
+                            }}
+                            type="checkbox"
+                          />
+                          <label className="form-check-label" htmlFor={`notebook-file-context-${notebookFile.id}`}>
+                            Include in context
+                          </label>
+                        </div>
+                      ) : null}
                     </div>
                   );
                 })}

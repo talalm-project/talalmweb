@@ -43,6 +43,8 @@ const NotebooksShow = () => {
   const [chatMessages, setChatMessages] = useState([]);
   const [prompt, setPrompt] = useState("");
   const [retrievalK, setRetrievalK] = useState("5");
+  const [manualRetrieval, setManualRetrieval] = useState(false);
+  const [manualRetrievalFileIds, setManualRetrievalFileIds] = useState([]);
   const [chatError, setChatError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isFilesLoading, setIsFilesLoading] = useState(true);
@@ -172,8 +174,21 @@ const NotebooksShow = () => {
     setActiveNotebookTab("chat");
     setNotebookNotes([]);
     setSelectedNotebookNote(null);
+    setManualRetrieval(false);
+    setManualRetrievalFileIds([]);
     setNotesErrorMessage("");
   }, [id]);
+
+  useEffect(() => {
+    const fileIds = new Set(notebookFiles.map((notebookFile) => {
+      return notebookFile.id;
+    }));
+    setManualRetrievalFileIds((currentIds) => {
+      return currentIds.filter((fileId) => {
+        return fileIds.has(fileId);
+      });
+    });
+  }, [notebookFiles]);
 
   useEffect(() => {
     const shouldPollFiles = notebookFiles.some((notebookFile) => {
@@ -607,6 +622,10 @@ const NotebooksShow = () => {
     if (!trimmedPrompt || isInferring || !notebook) {
       return;
     }
+    if (manualRetrieval && manualRetrievalFileIds.length === 0) {
+      setChatError("Documents have to be manually included when manual retrieval is set.");
+      return;
+    }
 
     const userMessage = {
       role: "user",
@@ -633,7 +652,16 @@ const NotebooksShow = () => {
       }
     ];
 
-    NotebookService.inferNotebook(notebook.id, { input: messages, k: normalizedRetrievalK(retrievalK) })
+    const inferencePayload = manualRetrieval ? {
+      input: messages,
+      manual_retrieval: true,
+      document_ids: manualRetrievalFileIds
+    } : {
+      input: messages,
+      k: normalizedRetrievalK(retrievalK)
+    };
+
+    NotebookService.inferNotebook(notebook.id, inferencePayload)
       .then((response) => {
         setChatMessages((currentMessages) => {
           return [
@@ -729,6 +757,10 @@ const NotebooksShow = () => {
           filesErrorMessage={filesErrorMessage}
           isFilesPanelCollapsed={isFilesPanelCollapsed}
           downloadingFileIds={downloadingFileIds}
+          isInferring={isInferring}
+          manualRetrieval={manualRetrieval}
+          manualRetrievalFileIds={manualRetrievalFileIds}
+          setManualRetrievalFileIds={setManualRetrievalFileIds}
           onCollapse={() => {
             setIsFilesPanelCollapsed(true);
           }}
@@ -760,8 +792,13 @@ const NotebooksShow = () => {
             prompt={prompt}
             promptContextUsage={promptContextUsage}
             retrievalK={retrievalK}
+            manualRetrieval={manualRetrieval}
+            manualRetrievalFileIds={manualRetrievalFileIds}
+            notebookFiles={notebookFiles}
             setPrompt={setPrompt}
             setRetrievalK={setRetrievalK}
+            setManualRetrieval={setManualRetrieval}
+            setManualRetrievalFileIds={setManualRetrievalFileIds}
             handlePromptSubmit={handlePromptSubmit}
             openSaveNoteModal={openSaveNoteModal}
             setShowClearChatModal={setShowClearChatModal}
@@ -773,6 +810,8 @@ const NotebooksShow = () => {
             togglingNoteIds={togglingNoteIds}
             handleToggleNotebookNoteContext={handleToggleNotebookNoteContext}
             openDeleteNoteModal={openDeleteNoteModal}
+            downloadingFileIds={downloadingFileIds}
+            onDownloadFile={handleDownloadFile}
             navigate={navigate}
           />
         </div>
