@@ -2,11 +2,6 @@ import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-export const CONNECTION_TYPES = {
-  local: "Local",
-  openai: "OpenAI"
-};
-
 export const POLLED_NOTEBOOK_FILE_STATUSES = ["pending", "uploading", "processing"];
 export const DELETABLE_NOTEBOOK_FILE_STATUSES = ["pending", "active"];
 export const RETRIEVAL_K_MIN = 1;

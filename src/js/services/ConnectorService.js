@@ -27,6 +27,12 @@ const ConnectorService = {
     });
   },
 
+  deleteConnector(id) {
+    return axios.delete(`${API_BASE_URL}/connectors/${id}`, {
+      headers: buildHeaders()
+    });
+  },
+
   inferConnector(id, args) {
     return axios.post(`${API_BASE_URL}/connectors/${id}/infer`, args, {
       headers: buildHeaders()

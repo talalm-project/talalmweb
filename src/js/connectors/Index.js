@@ -8,29 +8,13 @@ import PageHeader from "../commons/PageHeader";
 import { destroySession } from "../services/AuthService";
 import ConnectorService from "../services/ConnectorService";
 
-const CONNECTION_TYPES = [
-  { value: "", label: "All types" },
-  { value: "local", label: "Local" },
-  { value: "openai", label: "OpenAI" }
-];
-
-const formatConnectionType = (connectionType) => {
-  const entry = CONNECTION_TYPES.find((type) => {
-    return type.value === connectionType;
-  });
-
-  return entry?.label || connectionType;
-};
-
 const ConnectorsIndex = () => {
   const [connectors, setConnectors] = useState([]);
   const [filters, setFilters] = useState({
-    name: "",
-    connection_type: ""
+    name: ""
   });
   const [appliedFilters, setAppliedFilters] = useState({
-    name: "",
-    connection_type: ""
+    name: ""
   });
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
@@ -76,15 +60,13 @@ const ConnectorsIndex = () => {
   const handleFilterSubmit = (event) => {
     event.preventDefault();
     setAppliedFilters({
-      name: filters.name.trim(),
-      connection_type: filters.connection_type
+      name: filters.name.trim()
     });
   };
 
   const handleResetFilters = () => {
     const emptyFilters = {
-      name: "",
-      connection_type: ""
+      name: ""
     };
 
     setFilters(emptyFilters);
@@ -126,27 +108,6 @@ const ConnectorsIndex = () => {
             </div>
           </div>
 
-          <div className="col-12 col-md-4 col-xl-3">
-            <label className="form-label" htmlFor="connector-type-filter">
-              Connection Type
-            </label>
-            <select
-              className="form-select"
-              id="connector-type-filter"
-              name="connection_type"
-              onChange={handleFilterChange}
-              value={filters.connection_type}
-            >
-              {CONNECTION_TYPES.map((type) => {
-                return (
-                  <option key={type.value || "all"} value={type.value}>
-                    {type.label}
-                  </option>
-                );
-              })}
-            </select>
-          </div>
-
           <div className="col-12 col-md-auto">
             <button className="btn btn-primary d-inline-flex align-items-center gap-2 me-2" type="submit">
               <FontAwesomeIcon icon={faFilter} />
@@ -174,7 +135,6 @@ const ConnectorsIndex = () => {
                 <thead className="table-light">
                   <tr>
                     <th>Name</th>
-                    <th>Connection Type</th>
                     <th className="text-center">Action</th>
                   </tr>
                 </thead>
@@ -189,7 +149,6 @@ const ConnectorsIndex = () => {
                               <span>{connector.name}</span>
                             </span>
                           </td>
-                          <td>{formatConnectionType(connector.connection_type)}</td>
                           <td className="text-center">
                             <Link className="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-2" to={`/connectors/${connector.id}`}>
                               <FontAwesomeIcon icon={faEye} />
@@ -201,7 +160,7 @@ const ConnectorsIndex = () => {
                     })
                   ) : (
                     <tr>
-                      <td className="text-center text-muted py-4" colSpan="3">
+                      <td className="text-center text-muted py-4" colSpan="2">
                         No connectors found.
                       </td>
                     </tr>

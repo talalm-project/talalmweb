@@ -16,7 +16,6 @@ import {
 import AdminContent from "../../commons/AdminContent";
 import Loader from "../../commons/Loader";
 import {
-  CONNECTION_TYPES,
   RETRIEVAL_K_DEFAULT,
   RETRIEVAL_K_MAX,
   RETRIEVAL_K_MIN,
@@ -473,14 +472,6 @@ const ConfigPanel = ({ notebook, navigate }) => {
           <div className="talalm-detail-block">
             <div className="talalm-label mb-1">Name</div>
             <div className="talalm-detail-value">{renderValue(notebook.connector?.name)}</div>
-          </div>
-        </div>
-        <div className="col-12 col-lg-6">
-          <div className="talalm-detail-block">
-            <div className="talalm-label mb-1">Connection Type</div>
-            <div className="talalm-detail-value">
-              {CONNECTION_TYPES[notebook.connector?.connection_type] || renderValue(notebook.connector?.connection_type)}
-            </div>
           </div>
         </div>
         <div className="col-12 col-lg-6">

@@ -23,11 +23,6 @@ import { statusToLabel } from "./helpers/AppHelper";
 import { destroySession } from "./services/AuthService";
 import DashboardService from "./services/DashboardService";
 
-const connectionTypeLabels = {
-  local: "Local",
-  openai: "OpenAI"
-};
-
 const metadataFor = (connector) => {
   const metadata = connector?.data?.metadata;
   return metadata && typeof metadata === "object" ? metadata : {};
@@ -75,7 +70,6 @@ const emptyDashboard = {
     active_notebooks_count: 0,
     connectors_count: 0,
     local_connectors_count: 0,
-    openai_connectors_count: 0,
     active_files_count: 0,
     queued_files_count: 0,
     failed_files_count: 0,
@@ -262,7 +256,7 @@ const Dashboard = () => {
                   <div>
                     <p className="talalm-stat-label">Connectors</p>
                     <h2 className="talalm-stat-value">{formatNumber(summary.connectors_count)}</h2>
-                    <p className="mb-0 talalm-muted small">{summary.local_connectors_count} local, {summary.openai_connectors_count} OpenAI</p>
+                    <p className="mb-0 talalm-muted small">{summary.local_connectors_count} local</p>
                   </div>
                   <span className="badge talalm-badge-icon text-bg-info">
                     <FontAwesomeIcon icon={faServer} />
@@ -306,9 +300,6 @@ const Dashboard = () => {
                               </td>
                               <td>
                                 <div>{row.connector?.name || "Missing connector"}</div>
-                                <div className="talalm-muted small">
-                                  {connectionTypeLabels[row.connector?.connection_type] || row.connector?.connection_type || "Unknown"}
-                                </div>
                               </td>
                               <td>
                                 <div className="d-flex flex-wrap gap-2">
@@ -400,7 +391,6 @@ const Dashboard = () => {
                             <tr key={row.connector.id}>
                               <td>
                                 <div className="fw-semibold text-break">{row.connector.name}</div>
-                                <div className="talalm-muted small">{connectionTypeLabels[row.connector.connection_type] || row.connector.connection_type}</div>
                               </td>
                               <td>
                                 <div>{inference.model?.name || row.connector.name}</div>

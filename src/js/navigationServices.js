@@ -44,7 +44,7 @@ export const navigationServices = [
     path: "/connectors",
     icon: faPlug,
     section: "main",
-    keywords: ["models", "local", "openai", "providers"]
+    keywords: ["models", "local", "providers"]
   },
   {
     id: "doctor",

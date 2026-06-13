@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBan, faEye, faEyeSlash, faFloppyDisk } from "@fortawesome/free-solid-svg-icons";
+import { faBan, faFloppyDisk } from "@fortawesome/free-solid-svg-icons";
 import AdminContent from "../commons/AdminContent";
 import Loader from "../commons/Loader";
 import PageHeader from "../commons/PageHeader";
@@ -9,11 +9,6 @@ import { getInputClassName, renderInputErrors } from "../helpers/AppHelper";
 import { destroySession } from "../services/AuthService";
 import ConnectorService from "../services/ConnectorService";
 import { fetchLocalModels } from "../services/SystemService";
-
-const CONNECTION_TYPES = [
-  { value: "local", label: "Local" },
-  { value: "openai", label: "OpenAI" }
-];
 
 const DEFAULT_CONTEXT_WINDOW_MIN = 512;
 const DEFAULT_CONTEXT_WINDOW_MAX = 4096;
@@ -23,18 +18,14 @@ const ConnectorsForm = () => {
   const [formValues, setFormValues] = useState({
     code: "",
     name: "",
-    connection_type: "local",
     local_file_path: "",
     embedding_local_file_path: "",
     embedding_name: "",
-    api_key: "",
     data: {}
   });
   const [localModels, setLocalModels] = useState([]);
   const [selectedLocalModelPath, setSelectedLocalModelPath] = useState("");
   const [selectedEmbeddingModelPath, setSelectedEmbeddingModelPath] = useState("");
-  const [originalConnectionType, setOriginalConnectionType] = useState(null);
-  const [showApiKey, setShowApiKey] = useState(false);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [isBootstrapping, setIsBootstrapping] = useState(true);
@@ -42,45 +33,29 @@ const ConnectorsForm = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const isEditing = Boolean(id);
-  const isLocal = formValues.connection_type === "local";
-  const isOpenAi = formValues.connection_type === "openai";
-  const apiKeyRequired = isOpenAi && (!isEditing || originalConnectionType !== "openai");
-  const inferenceLocalModels = localModels.filter((model) => {
-    return !model.type || model.type === "inference";
-  });
-  const embeddingLocalModels = localModels.filter((model) => {
-    return model.type === "embedding" || model.type === "embeddings";
-  });
-  const selectedLocalModel = inferenceLocalModels.find((model) => {
-    return model.path === selectedLocalModelPath;
-  });
+  const inferenceLocalModels = localModels.filter((model) => !model.type || model.type === "inference");
+  const embeddingLocalModels = localModels.filter((model) => model.type === "embedding" || model.type === "embeddings");
+  const selectedLocalModel = inferenceLocalModels.find((model) => model.path === selectedLocalModelPath);
   const contextWindowMin = selectedLocalModel?.context_window_min || DEFAULT_CONTEXT_WINDOW_MIN;
   const contextWindowMax = selectedLocalModel?.context_window_max || DEFAULT_CONTEXT_WINDOW_MAX;
   const contextWindowRecommended = selectedLocalModel?.context_window_recommended || DEFAULT_CONTEXT_WINDOW_RECOMMENDED;
   const contextWindowValue = Number(formValues.data?.model_options?.n_ctx || contextWindowRecommended);
 
   const updateFormValue = (key, value) => {
-    setFormValues((currentValues) => {
-      return {
-        ...currentValues,
-        [key]: value
-      };
-    });
+    setFormValues((currentValues) => ({ ...currentValues, [key]: value }));
   };
 
   const updateModelOption = (key, value) => {
-    setFormValues((currentValues) => {
-      return {
-        ...currentValues,
-        data: {
-          ...(currentValues.data || {}),
-          model_options: {
-            ...((currentValues.data || {}).model_options || {}),
-            [key]: value
-          }
+    setFormValues((currentValues) => ({
+      ...currentValues,
+      data: {
+        ...(currentValues.data || {}),
+        model_options: {
+          ...((currentValues.data || {}).model_options || {}),
+          [key]: value
         }
-      };
-    });
+      }
+    }));
   };
 
   const handleAuthError = (error) => {
@@ -94,41 +69,32 @@ const ConnectorsForm = () => {
   };
 
   const applyLocalModel = (path, models = localModels) => {
-    const localModel = models.find((model) => {
-      return model.path === path;
-    });
+    const localModel = models.find((model) => model.path === path);
 
     setSelectedLocalModelPath(path);
-    setFormValues((currentValues) => {
-      return {
-        ...currentValues,
-        name: localModel?.name || "",
-        local_file_path: localModel?.path || "",
-        api_key: "",
-        data: {
-          ...(currentValues.data || {}),
-          model_options: {
-            ...((currentValues.data || {}).model_options || {}),
-            n_ctx: localModel?.context_window_recommended || DEFAULT_CONTEXT_WINDOW_RECOMMENDED
-          }
+    setFormValues((currentValues) => ({
+      ...currentValues,
+      name: localModel?.name || "",
+      local_file_path: localModel?.path || "",
+      data: {
+        ...(currentValues.data || {}),
+        model_options: {
+          ...((currentValues.data || {}).model_options || {}),
+          n_ctx: localModel?.context_window_recommended || DEFAULT_CONTEXT_WINDOW_RECOMMENDED
         }
-      };
-    });
+      }
+    }));
   };
 
   const applyEmbeddingModel = (path, models = localModels) => {
-    const embeddingModel = models.find((model) => {
-      return model.path === path;
-    });
+    const embeddingModel = models.find((model) => model.path === path);
 
     setSelectedEmbeddingModelPath(path);
-    setFormValues((currentValues) => {
-      return {
-        ...currentValues,
-        embedding_name: embeddingModel?.name || "",
-        embedding_local_file_path: embeddingModel?.path || ""
-      };
-    });
+    setFormValues((currentValues) => ({
+      ...currentValues,
+      embedding_name: embeddingModel?.name || "",
+      embedding_local_file_path: embeddingModel?.path || ""
+    }));
   };
 
   const loadForm = () => {
@@ -150,31 +116,20 @@ const ConnectorsForm = () => {
         }
 
         const connector = connectorResponse.data;
-        setOriginalConnectionType(connector.connection_type || "local");
-        setFormValues((currentValues) => {
-          return {
-            ...currentValues,
-            code: connector.code || "",
-            name: connector.name || "",
-            connection_type: connector.connection_type || "local",
-            local_file_path: connector.local_file_path || "",
-            embedding_local_file_path: connector.embedding_local_file_path || "",
-            embedding_name: connector.embedding_name || "",
-            api_key: "",
-            data: connector.data || {}
-          };
-        });
+        setFormValues((currentValues) => ({
+          ...currentValues,
+          code: connector.code || "",
+          name: connector.name || "",
+          local_file_path: connector.local_file_path || "",
+          embedding_local_file_path: connector.embedding_local_file_path || "",
+          embedding_name: connector.embedding_name || "",
+          data: connector.data || {}
+        }));
 
-        if (connector.connection_type === "local") {
-          const localModel = models.find((model) => {
-            return model.path === connector.local_file_path;
-          });
-          const embeddingModel = models.find((model) => {
-            return model.path === connector.embedding_local_file_path;
-          });
-          setSelectedLocalModelPath(localModel?.path || "");
-          setSelectedEmbeddingModelPath(embeddingModel?.path || "");
-        }
+        const localModel = models.find((model) => model.path === connector.local_file_path);
+        const embeddingModel = models.find((model) => model.path === connector.embedding_local_file_path);
+        setSelectedLocalModelPath(localModel?.path || "");
+        setSelectedEmbeddingModelPath(embeddingModel?.path || "");
       })
       .catch((error) => {
         if (handleAuthError(error)) {
@@ -188,26 +143,6 @@ const ConnectorsForm = () => {
       });
   };
 
-  const handleConnectionTypeChange = (event) => {
-    const connectionType = event.target.value;
-
-    setFormValues((currentValues) => {
-      return {
-        ...currentValues,
-        connection_type: connectionType,
-        name: connectionType === "local" ? "" : currentValues.name,
-        local_file_path: "",
-        embedding_local_file_path: "",
-        embedding_name: "",
-        api_key: connectionType === "local" ? "" : currentValues.api_key,
-        data: connectionType === "local" ? currentValues.data : {}
-      };
-    });
-    setSelectedLocalModelPath("");
-    setSelectedEmbeddingModelPath("");
-    setErrors({});
-  };
-
   const handleSubmit = (event) => {
     event.preventDefault();
     setIsLoading(true);
@@ -216,32 +151,17 @@ const ConnectorsForm = () => {
     const payload = {
       code: formValues.code,
       name: formValues.name,
-      connection_type: formValues.connection_type,
-      data: formValues.data || {}
-    };
-
-    if (isLocal) {
-      payload.local_file_path = formValues.local_file_path;
-      payload.embedding_local_file_path = formValues.embedding_local_file_path;
-      payload.embedding_name = formValues.embedding_name;
-      payload.api_key = null;
-      payload.data = {
-        ...(payload.data || {}),
+      local_file_path: formValues.local_file_path,
+      embedding_local_file_path: formValues.embedding_local_file_path,
+      embedding_name: formValues.embedding_name,
+      data: {
+        ...(formValues.data || {}),
         model_options: {
-          ...((payload.data || {}).model_options || {}),
+          ...((formValues.data || {}).model_options || {}),
           n_ctx: contextWindowValue
         }
-      };
-    }
-
-    if (isOpenAi) {
-      payload.local_file_path = null;
-      payload.embedding_local_file_path = null;
-      payload.embedding_name = null;
-      if (!isEditing || formValues.api_key) {
-        payload.api_key = formValues.api_key;
       }
-    }
+    };
 
     const request = isEditing
       ? ConnectorService.updateConnector(id, payload)
@@ -276,10 +196,7 @@ const ConnectorsForm = () => {
 
   return (
     <div className="d-flex flex-column gap-4">
-      <PageHeader
-        eyebrow="Models"
-        title={isEditing ? "Edit connector" : "Create connector"}
-      />
+      <PageHeader eyebrow="Models" title={isEditing ? "Edit connector" : "Create connector"} />
 
       <AdminContent
         title={isEditing ? "Update Connector" : "New Connector"}
@@ -296,9 +213,7 @@ const ConnectorsForm = () => {
           <form className="row g-3" onSubmit={handleSubmit}>
             {pageError ? (
               <div className="col-12">
-                <div className="alert alert-danger mb-0">
-                  {pageError}
-                </div>
+                <div className="alert alert-danger mb-0">{pageError}</div>
               </div>
             ) : null}
 
@@ -308,215 +223,111 @@ const ConnectorsForm = () => {
                 className={getInputClassName(errors, "code")}
                 disabled={isLoading}
                 value={formValues.code}
-                onChange={(event) => {
-                  updateFormValue("code", event.target.value);
-                }}
+                onChange={(event) => updateFormValue("code", event.target.value)}
               />
               {renderInputErrors(errors, "code")}
             </div>
 
             <div className="col-12">
-              <label className="form-label">Connection Type</label>
+              <label className="form-label">Local Model</label>
               <select
                 className="form-select"
-                disabled={isLoading}
-                value={formValues.connection_type}
-                onChange={handleConnectionTypeChange}
+                disabled={isLoading || inferenceLocalModels.length === 0}
+                value={selectedLocalModelPath}
+                onChange={(event) => applyLocalModel(event.target.value)}
               >
-                {CONNECTION_TYPES.map((type) => {
-                  return (
-                    <option key={type.value} value={type.value}>
-                      {type.label}
-                    </option>
-                  );
-                })}
+                <option value="">Select a local model</option>
+                {inferenceLocalModels.map((model) => (
+                  <option key={model.path} value={model.path}>
+                    {model.name}
+                  </option>
+                ))}
               </select>
-              {renderInputErrors(errors, "connection_type")}
+              {inferenceLocalModels.length === 0 ? (
+                <div className="form-text text-warning">No local inference models are available in the backend manifest.</div>
+              ) : null}
             </div>
 
-            {isLocal ? (
-              <React.Fragment>
-                <div className="col-12">
-                  <label className="form-label">Local Model</label>
-                  <select
-                    className="form-select"
-                    disabled={isLoading || inferenceLocalModels.length === 0}
-                    value={selectedLocalModelPath}
-                    onChange={(event) => {
-                      applyLocalModel(event.target.value);
-                    }}
-                  >
-                    <option value="">Select a local model</option>
-                    {inferenceLocalModels.map((model) => {
-                      return (
-                        <option key={model.path} value={model.path}>
-                          {model.name}
-                        </option>
-                      );
-                    })}
-                  </select>
-                  {inferenceLocalModels.length === 0 ? (
-                    <div className="form-text text-warning">
-                      No local inference models are available in the backend manifest.
-                    </div>
-                  ) : null}
-                </div>
+            <div className="col-12">
+              <label className="form-label">Name</label>
+              <input className={getInputClassName(errors, "name")} disabled value={formValues.name} />
+              {renderInputErrors(errors, "name")}
+            </div>
 
-                <div className="col-12">
-                  <label className="form-label">Name</label>
+            <div className="col-12">
+              <label className="form-label">Local File Path</label>
+              <input className={getInputClassName(errors, "local_file_path")} disabled value={formValues.local_file_path} />
+              {renderInputErrors(errors, "local_file_path")}
+            </div>
+
+            <div className="col-12">
+              <div className="talalm-range-control">
+                <div className="d-flex align-items-center justify-content-between gap-3">
+                  <label className="form-label mb-0" htmlFor="connector-context-window">Context Window</label>
                   <input
-                    className={getInputClassName(errors, "name")}
-                    disabled
-                    value={formValues.name}
+                    className="form-control form-control-sm talalm-range-value"
+                    disabled={isLoading || !formValues.local_file_path}
+                    max={contextWindowMax}
+                    min={contextWindowMin}
+                    onChange={(event) => updateModelOption("n_ctx", Number(event.target.value))}
+                    type="number"
+                    value={contextWindowValue}
                   />
-                  {renderInputErrors(errors, "name")}
                 </div>
+                <input
+                  className="form-range"
+                  disabled={isLoading || !formValues.local_file_path}
+                  id="connector-context-window"
+                  max={contextWindowMax}
+                  min={contextWindowMin}
+                  onChange={(event) => updateModelOption("n_ctx", Number(event.target.value))}
+                  step="128"
+                  type="range"
+                  value={contextWindowValue}
+                />
+                <div className="talalm-range-bounds">
+                  <span>Min {contextWindowMin.toLocaleString()}</span>
+                  <span>Recommended {contextWindowRecommended.toLocaleString()}</span>
+                  <span>Max {contextWindowMax.toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
 
-                <div className="col-12">
-                  <label className="form-label">Local File Path</label>
-                  <input
-                    className={getInputClassName(errors, "local_file_path")}
-                    disabled
-                    value={formValues.local_file_path}
-                  />
-                  {renderInputErrors(errors, "local_file_path")}
-                </div>
+            <div className="col-12">
+              <label className="form-label">Embedding Model</label>
+              <select
+                className="form-select"
+                disabled={isLoading || embeddingLocalModels.length === 0}
+                value={selectedEmbeddingModelPath}
+                onChange={(event) => applyEmbeddingModel(event.target.value)}
+              >
+                <option value="">Select an embedding model</option>
+                {embeddingLocalModels.map((model) => (
+                  <option key={model.path} value={model.path}>
+                    {model.name}
+                  </option>
+                ))}
+              </select>
+              {embeddingLocalModels.length === 0 ? (
+                <div className="form-text text-warning">No local embedding models are available in the backend manifest.</div>
+              ) : null}
+            </div>
 
-                <div className="col-12">
-                  <div className="talalm-range-control">
-                    <div className="d-flex align-items-center justify-content-between gap-3">
-                      <label className="form-label mb-0" htmlFor="connector-context-window">
-                        Context Window
-                      </label>
-                      <input
-                        className="form-control form-control-sm talalm-range-value"
-                        disabled={isLoading || !formValues.local_file_path}
-                        max={contextWindowMax}
-                        min={contextWindowMin}
-                        onChange={(event) => {
-                          updateModelOption("n_ctx", Number(event.target.value));
-                        }}
-                        type="number"
-                        value={contextWindowValue}
-                      />
-                    </div>
-                    <input
-                      className="form-range"
-                      disabled={isLoading || !formValues.local_file_path}
-                      id="connector-context-window"
-                      max={contextWindowMax}
-                      min={contextWindowMin}
-                      onChange={(event) => {
-                        updateModelOption("n_ctx", Number(event.target.value));
-                      }}
-                      step="128"
-                      type="range"
-                      value={contextWindowValue}
-                    />
-                    <div className="talalm-range-bounds">
-                      <span>Min {contextWindowMin.toLocaleString()}</span>
-                      <span>Recommended {contextWindowRecommended.toLocaleString()}</span>
-                      <span>Max {contextWindowMax.toLocaleString()}</span>
-                    </div>
-                  </div>
-                </div>
+            <div className="col-12">
+              <label className="form-label">Embedding Name</label>
+              <input className={getInputClassName(errors, "embedding_name")} disabled value={formValues.embedding_name} />
+              {renderInputErrors(errors, "embedding_name")}
+            </div>
 
-                <div className="col-12">
-                  <label className="form-label">Embedding Model</label>
-                  <select
-                    className="form-select"
-                    disabled={isLoading || embeddingLocalModels.length === 0}
-                    value={selectedEmbeddingModelPath}
-                    onChange={(event) => {
-                      applyEmbeddingModel(event.target.value);
-                    }}
-                  >
-                    <option value="">Select an embedding model</option>
-                    {embeddingLocalModels.map((model) => {
-                      return (
-                        <option key={model.path} value={model.path}>
-                          {model.name}
-                        </option>
-                      );
-                    })}
-                  </select>
-                  {embeddingLocalModels.length === 0 ? (
-                    <div className="form-text text-warning">
-                      No local embedding models are available in the backend manifest.
-                    </div>
-                  ) : null}
-                </div>
-
-                <div className="col-12">
-                  <label className="form-label">Embedding Name</label>
-                  <input
-                    className={getInputClassName(errors, "embedding_name")}
-                    disabled
-                    value={formValues.embedding_name}
-                  />
-                  {renderInputErrors(errors, "embedding_name")}
-                </div>
-
-                <div className="col-12">
-                  <label className="form-label">Embedding Local File Path</label>
-                  <input
-                    className={getInputClassName(errors, "embedding_local_file_path")}
-                    disabled
-                    value={formValues.embedding_local_file_path}
-                  />
-                  {renderInputErrors(errors, "embedding_local_file_path")}
-                </div>
-              </React.Fragment>
-            ) : null}
-
-            {isOpenAi ? (
-              <React.Fragment>
-                <div className="col-12">
-                  <label className="form-label">Model Name</label>
-                  <input
-                    className={getInputClassName(errors, "name")}
-                    disabled={isLoading}
-                    value={formValues.name}
-                    onChange={(event) => {
-                      updateFormValue("name", event.target.value);
-                    }}
-                  />
-                  {renderInputErrors(errors, "name")}
-                </div>
-
-                <div className="col-12">
-                  <label className="form-label">API Key</label>
-                  <div className="input-group">
-                    <input
-                      className={getInputClassName(errors, "api_key")}
-                      disabled={isLoading}
-                      required={apiKeyRequired}
-                      type={showApiKey ? "text" : "password"}
-                      value={formValues.api_key}
-                      onChange={(event) => {
-                        updateFormValue("api_key", event.target.value);
-                      }}
-                    />
-                    <button
-                      className="btn btn-outline-secondary"
-                      disabled={isLoading}
-                      onClick={() => {
-                        setShowApiKey((currentValue) => !currentValue);
-                      }}
-                      type="button"
-                    >
-                      <FontAwesomeIcon icon={showApiKey ? faEyeSlash : faEye} />
-                    </button>
-                  </div>
-                  {isEditing && originalConnectionType === "openai" ? (
-                    <div className="form-text">
-                      Leave blank to keep the existing API key.
-                    </div>
-                  ) : null}
-                  {renderInputErrors(errors, "api_key")}
-                </div>
-              </React.Fragment>
-            ) : null}
+            <div className="col-12">
+              <label className="form-label">Embedding Local File Path</label>
+              <input
+                className={getInputClassName(errors, "embedding_local_file_path")}
+                disabled
+                value={formValues.embedding_local_file_path}
+              />
+              {renderInputErrors(errors, "embedding_local_file_path")}
+            </div>
 
             <div className="col-12 d-flex justify-content-end gap-2">
               <Link className="btn btn-outline-secondary d-inline-flex align-items-center gap-2" to="/connectors">
