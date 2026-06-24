@@ -1,126 +1,21 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import Editor from "@monaco-editor/react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faArrowLeft,
-  faChevronDown,
-  faChevronRight,
   faDownload,
-  faFileArrowUp,
-  faFileLines,
-  faFilePdf,
-  faFolder,
-  faFolderOpen,
   faFloppyDisk,
   faPlay,
-  faRotate,
-  faTerminal,
-  faUpRightFromSquare,
-  faTrash
+  faRotate
 } from "@fortawesome/free-solid-svg-icons";
 import AdminContent from "../commons/AdminContent";
-import ConfirmationModal from "../commons/ConfirmationModal";
 import Loader from "../commons/Loader";
 import PageHeader from "../commons/PageHeader";
 import { destroySession } from "../services/AuthService";
 import PaperService from "../services/PaperService";
-import { formatByteSize } from "../notebooks/show/helpers";
-
-const extensionFor = (paperFile) => {
-  const value = paperFile?.path || paperFile?.filename || "";
-  const index = value.lastIndexOf(".");
-  return index >= 0 ? value.slice(index).toLowerCase() : "";
-};
-
-const languageFor = (paperFile) => {
-  const extension = extensionFor(paperFile);
-  if ([".cls", ".sty", ".tex"].includes(extension)) {
-    return "latex";
-  }
-  if (extension === ".md") {
-    return "markdown";
-  }
-
-  return "plaintext";
-};
-
-const fileTreeFor = (paperFiles) => {
-  const root = [];
-
-  paperFiles
-    .slice()
-    .sort((left, right) => left.path.localeCompare(right.path))
-    .forEach((paperFile) => {
-      const parts = paperFile.path.split("/").filter(Boolean);
-      let level = root;
-      parts.forEach((part, index) => {
-        const isFile = index === parts.length - 1;
-        const nodePath = parts.slice(0, index + 1).join("/");
-
-        if (isFile) {
-          level.push({
-            id: paperFile.id,
-            label: part,
-            path: nodePath,
-            type: "file",
-            file: paperFile
-          });
-          return;
-        }
-
-        let folder = level.find((node) => node.type === "folder" && node.path === nodePath);
-        if (!folder) {
-          folder = {
-            id: nodePath,
-            label: part,
-            path: nodePath,
-            type: "folder",
-            children: []
-          };
-          level.push(folder);
-        }
-        level = folder.children;
-      });
-    });
-
-  return root;
-};
-
-const folderPathsFor = (paperFiles) => {
-  const paths = new Set(["source", "assets"]);
-
-  paperFiles.forEach((paperFile) => {
-    const parts = paperFile.path.split("/").filter(Boolean);
-    for (let index = 1; index < parts.length; index += 1) {
-      paths.add(parts.slice(0, index).join("/"));
-    }
-  });
-
-  return Array.from(paths).sort((left, right) => left.localeCompare(right));
-};
-
-const joinProjectPath = (folderPath, filePath) => {
-  const cleanFolder = String(folderPath || "").trim().replace(/^\/+|\/+$/g, "");
-  const cleanFile = String(filePath || "").trim().replace(/^\/+/g, "");
-  return cleanFolder ? `${cleanFolder}/${cleanFile}` : cleanFile;
-};
-
-const AUTOSAVE_DELAY_MS = 2000;
-
-const saveStatusLabelFor = (saveStatus) => {
-  if (saveStatus === "saving") {
-    return { className: "text-bg-info", label: "Saving..." };
-  }
-  if (saveStatus === "unsaved") {
-    return { className: "text-bg-warning", label: "Unsaved changes" };
-  }
-  if (saveStatus === "save_failed") {
-    return { className: "text-bg-danger", label: "Save failed" };
-  }
-
-  return { className: "text-bg-success", label: "Saved" };
-};
+import DeleteModals from "./show/DeleteModals";
+import PaperWorkspace from "./show/PaperWorkspace";
+import { AUTOSAVE_DELAY_MS, fileTreeFor, folderPathsFor, joinProjectPath } from "./show/helpers";
 
 const PaperShow = () => {
   const [paper, setPaper] = useState(null);
@@ -867,83 +762,6 @@ const PaperShow = () => {
     });
   };
 
-  const renderTreeNodes = (nodes, depth = 0) => {
-    return nodes.map((node) => {
-      const paddingLeft = `${depth * 1.1}rem`;
-
-      if (node.type === "folder") {
-        const isExpanded = expandedFolders.has(node.path);
-        return (
-          <React.Fragment key={node.id}>
-            <div className="list-group-item d-flex align-items-center justify-content-between gap-2" style={{ paddingLeft }}>
-              <button
-                className="btn btn-link p-0 text-start text-decoration-none d-inline-flex align-items-center gap-2"
-                onClick={() => {
-                  toggleFolder(node.path);
-                }}
-                type="button"
-              >
-                <FontAwesomeIcon icon={isExpanded ? faChevronDown : faChevronRight} />
-                <FontAwesomeIcon icon={isExpanded ? faFolderOpen : faFolder} />
-                <span className="fw-semibold">{node.label}</span>
-              </button>
-              <button
-                aria-label={`Delete ${node.path}`}
-                className="btn btn-outline-danger btn-sm talalm-icon-button"
-                onClick={() => {
-                  openDeleteFolderModal(node);
-                }}
-                title="Delete folder"
-                type="button"
-              >
-                <FontAwesomeIcon icon={faTrash} />
-              </button>
-            </div>
-            {isExpanded ? renderTreeNodes(node.children, depth + 1) : null}
-          </React.Fragment>
-        );
-      }
-
-      const paperFile = node.file;
-      const isSelected = selectedPaperFile?.id === paperFile.id;
-      const isDeleting = deletingFileIds.includes(paperFile.id);
-      return (
-        <div className={`list-group-item ${isSelected ? "active" : ""}`} key={paperFile.id} style={{ paddingLeft }}>
-          <div className="d-flex align-items-start justify-content-between gap-2">
-            <button
-              className={`btn btn-link p-0 text-start text-decoration-none ${isSelected ? "text-white" : ""}`}
-              onClick={() => {
-                switchToPaperFile(paperFile);
-              }}
-              type="button"
-            >
-              <div className="fw-semibold d-inline-flex align-items-center gap-2">
-                <FontAwesomeIcon icon={faFileLines} />
-                <span>{node.label}</span>
-              </div>
-              <div className={isSelected ? "small text-white-50" : "small text-muted"}>
-                {formatByteSize(paperFile.size)}
-                {paperFile.content_type ? ` · ${paperFile.content_type}` : ""}
-              </div>
-            </button>
-            <button
-              aria-label={`Delete ${paperFile.filename}`}
-              className={isSelected ? "btn btn-outline-light btn-sm talalm-icon-button" : "btn btn-outline-danger btn-sm talalm-icon-button"}
-              disabled={isDeleting}
-              onClick={() => {
-                handleDeleteFile(paperFile);
-              }}
-              title="Delete file"
-              type="button"
-            >
-              <FontAwesomeIcon icon={faTrash} />
-            </button>
-          </div>
-        </div>
-      );
-    });
-  };
-
   const headerActions = [
     <button className="btn btn-outline-secondary d-inline-flex align-items-center gap-2" key="back-papers" onClick={leavePaper} type="button">
       <FontAwesomeIcon icon={faArrowLeft} />
@@ -965,6 +783,7 @@ const PaperShow = () => {
       </button>
     );
   }
+
   headerActions.push(
     <button
       className="btn btn-outline-primary d-inline-flex align-items-center gap-2"
@@ -977,6 +796,7 @@ const PaperShow = () => {
       <span>{isCompiling || activeCompileJob ? "Compiling..." : "Compile"}</span>
     </button>
   );
+
   headerActions.push(
     <button
       className="btn btn-outline-secondary d-inline-flex align-items-center gap-2"
@@ -989,6 +809,7 @@ const PaperShow = () => {
       <span>{isPdfLoading ? "Refreshing..." : "Refresh PDF"}</span>
     </button>
   );
+
   headerActions.push(
     <button
       className="btn btn-outline-secondary d-inline-flex align-items-center gap-2"
@@ -1001,15 +822,10 @@ const PaperShow = () => {
       <span>Download PDF</span>
     </button>
   );
-  const saveStatusLabel = saveStatusLabelFor(saveStatus);
 
   return (
     <div className="d-flex flex-column gap-4">
-      <PageHeader
-        eyebrow="Writing"
-        title={paper ? paper.name : "Paper"}
-        actions={headerActions}
-      />
+      <PageHeader eyebrow="Writing" title={paper ? paper.name : "Paper"} actions={headerActions} />
 
       {isLoading ? (
         <AdminContent title={paper ? paper.name : "Paper"}>
@@ -1017,447 +833,79 @@ const PaperShow = () => {
         </AdminContent>
       ) : (
         <React.Fragment>
-          {errorMessage ? (
-            <div className="alert alert-danger mb-0">
-              {errorMessage}
-            </div>
-          ) : null}
+          {errorMessage ? <div className="alert alert-danger mb-0">{errorMessage}</div> : null}
 
           {paper ? (
-            <div className="d-flex flex-column gap-4">
-              <ul className="nav nav-tabs" role="tablist">
-                <li className="nav-item" role="presentation">
-                  <button
-                    aria-selected={activeWorkspaceTab === "workspace"}
-                    className={`nav-link d-inline-flex align-items-center gap-2 ${activeWorkspaceTab === "workspace" ? "active" : ""}`}
-                    onClick={() => setActiveWorkspaceTab("workspace")}
-                    role="tab"
-                    type="button"
-                  >
-                    <FontAwesomeIcon icon={faFileLines} />
-                    <span>Editor</span>
-                  </button>
-                </li>
-                <li className="nav-item" role="presentation">
-                  <button
-                    aria-selected={activeWorkspaceTab === "logs"}
-                    className={`nav-link d-inline-flex align-items-center gap-2 ${activeWorkspaceTab === "logs" ? "active" : ""}`}
-                    onClick={() => setActiveWorkspaceTab("logs")}
-                    role="tab"
-                    type="button"
-                  >
-                    <FontAwesomeIcon icon={faTerminal} />
-                    <span>Build Logs</span>
-                    {compileJob ? (
-                      <span className={`badge ms-2 ${compileJob.status === "success" ? "text-bg-success" : compileJob.status === "failed" ? "text-bg-danger" : "text-bg-secondary"}`}>
-                        {compileJob.status}
-                      </span>
-                    ) : null}
-                  </button>
-                </li>
-                <li className="nav-item" role="presentation">
-                  <button
-                    aria-selected={activeWorkspaceTab === "actions"}
-                    className={`nav-link d-inline-flex align-items-center gap-2 ${activeWorkspaceTab === "actions" ? "active" : ""}`}
-                    onClick={() => setActiveWorkspaceTab("actions")}
-                    role="tab"
-                    type="button"
-                  >
-                    <FontAwesomeIcon icon={faTrash} />
-                    <span>Actions</span>
-                  </button>
-                </li>
-              </ul>
-
-              {activeWorkspaceTab === "workspace" ? (
-                <div className="row g-4">
-                  <div className="col-12 col-xl-2">
-                <AdminContent
-                  title="Files"
-                  headerActions={[
-                    <button
-                      className="btn btn-primary btn-sm d-inline-flex align-items-center gap-2"
-                      disabled={isUploading}
-                      key="upload-file"
-                      onClick={openFilePicker}
-                      type="button"
-                    >
-                      <FontAwesomeIcon icon={faFileArrowUp} />
-                      <span>{isUploading ? "Uploading..." : "Upload File"}</span>
-                    </button>,
-                    <button
-                      className="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-2"
-                      disabled={isUploading}
-                      key="upload-folder"
-                      onClick={openFolderPicker}
-                      type="button"
-                    >
-                      <FontAwesomeIcon icon={faFolderOpen} />
-                      <span>Upload Folder</span>
-                    </button>
-                  ]}
-                >
-                  <input
-                    className="d-none"
-                    multiple
-                    onChange={handleFileSelection}
-                    ref={fileInputRef}
-                    type="file"
-                  />
-                  <input
-                    className="d-none"
-                    directory=""
-                    multiple
-                    onChange={handleFolderSelection}
-                    ref={folderInputRef}
-                    type="file"
-                    webkitdirectory=""
-                  />
-
-                  <div className="mb-3">
-                    <label className="form-label" htmlFor="paper-upload-destination">
-                      Upload destination
-                    </label>
-                    <select
-                      className="form-control"
-                      id="paper-upload-destination"
-                      onChange={(event) => setUploadDestinationPath(event.target.value)}
-                      value={uploadDestinationPath}
-                    >
-                      {folderPaths.map((folderPath) => (
-                        <option key={folderPath} value={folderPath}>
-                          {folderPath}
-                        </option>
-                      ))}
-                      <option value="">Project root</option>
-                    </select>
-                  </div>
-
-                  <div className="mb-3">
-                    <label className="form-label" htmlFor="paper-custom-upload-destination">
-                      New folder path
-                    </label>
-                    <input
-                      className="form-control"
-                      id="paper-custom-upload-destination"
-                      onChange={(event) => setUploadDestinationPath(event.target.value)}
-                      placeholder="source/sections"
-                      value={folderPaths.includes(uploadDestinationPath) || uploadDestinationPath === "" ? "" : uploadDestinationPath}
-                    />
-                    <div className="form-text">
-                      Select an existing folder above, or type a new folder path here before uploading.
-                    </div>
-                  </div>
-
-                  {uploadProgress !== null ? (
-                    <div className="mb-3">
-                      <div className="d-flex justify-content-between small text-muted mb-1">
-                        <span>Uploading</span>
-                        <span>{uploadProgress}%</span>
-                      </div>
-                      <div className="progress">
-                        <div
-                          aria-valuemax="100"
-                          aria-valuemin="0"
-                          aria-valuenow={uploadProgress}
-                          className="progress-bar"
-                          role="progressbar"
-                          style={{ width: `${uploadProgress}%` }}
-                        />
-                      </div>
-                    </div>
-                  ) : null}
-
-                  {uploadErrorMessage ? (
-                    <div className="alert alert-danger">
-                      {uploadErrorMessage}
-                    </div>
-                  ) : null}
-
-                  {filesErrorMessage ? (
-                    <div className="alert alert-danger">
-                      {filesErrorMessage}
-                    </div>
-                  ) : null}
-
-                  {isFilesLoading ? (
-                    <Loader />
-                  ) : (
-                    <React.Fragment>
-                      {paperFiles.length === 0 ? (
-                        <div className="talalm-empty-state">
-                          <FontAwesomeIcon icon={faFolderOpen} />
-                          <span>No files uploaded.</span>
-                        </div>
-                      ) : (
-                        <div className="list-group">
-                          {renderTreeNodes(fileTree)}
-                        </div>
-                      )}
-                    </React.Fragment>
-                  )}
-                </AdminContent>
-                  </div>
-
-                  <div className="col-12 col-xl-5">
-                <AdminContent title={selectedPaperFile ? selectedPaperFile.path : "Editor"}>
-                  <div className="d-flex flex-column gap-3">
-                    {selectedPaperFile && isSelectedFileEditable ? (
-                      <div className="d-flex flex-wrap align-items-center gap-2">
-                        <span className={`badge ${saveStatusLabel.className}`}>{saveStatusLabel.label}</span>
-                        {saveMessage ? (
-                          <span className="badge text-bg-success">{saveMessage}</span>
-                        ) : null}
-                        {saveStatus === "save_failed" ? (
-                          <button
-                            className="btn btn-outline-secondary btn-sm"
-                            onClick={reloadSelectedFile}
-                            type="button"
-                          >
-                            Reload File
-                          </button>
-                        ) : null}
-                      </div>
-                    ) : null}
-
-                    {contentErrorMessage ? (
-                      <div className={isSelectedFileEditable ? "alert alert-danger mb-0" : "alert alert-info mb-0"}>
-                        {contentErrorMessage}
-                      </div>
-                    ) : null}
-
-                    {!selectedPaperFile ? (
-                      <div className="talalm-empty-state">
-                        <FontAwesomeIcon icon={faFileLines} />
-                        <span>Select a file to begin editing.</span>
-                      </div>
-                    ) : null}
-
-                    {selectedPaperFile && isContentLoading ? (
-                      <Loader />
-                    ) : null}
-
-                    {selectedPaperFile && isSelectedFileEditable && !isContentLoading ? (
-                      <div className="border">
-                        <Editor
-                          height="64vh"
-                          language={languageFor(selectedPaperFile)}
-                          onChange={(value) => {
-                            setEditorValue(value || "");
-                            setSaveStatus("unsaved");
-                            setSaveMessage("");
-                          }}
-                          options={{
-                            lineNumbers: "on",
-                            minimap: { enabled: true },
-                            wordWrap: "on"
-                          }}
-                          theme={monacoTheme}
-                          value={editorValue}
-                        />
-                      </div>
-                    ) : null}
-                  </div>
-                </AdminContent>
-                  </div>
-
-                  <div className="col-12 col-xl-5">
-                <AdminContent
-                  title="PDF Preview"
-                  headerActions={[
-                    <button
-                      className="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-2"
-                      disabled={isPdfLoading}
-                      key="refresh-pdf-panel"
-                      onClick={() => refreshLatestPdf()}
-                      type="button"
-                    >
-                      <FontAwesomeIcon icon={faRotate} />
-                      <span>{isPdfLoading ? "Refreshing..." : "Refresh"}</span>
-                    </button>,
-                    <button
-                      className="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-2"
-                      disabled={!pdfAvailable || isPdfLoading}
-                      key="download-pdf-panel"
-                      onClick={downloadLatestPdf}
-                      type="button"
-                    >
-                      <FontAwesomeIcon icon={faDownload} />
-                      <span>Download</span>
-                    </button>,
-                    <button
-                      className="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-2"
-                      disabled={!pdfAvailable || isPdfLoading}
-                      key="open-latest-pdf"
-                      onClick={openLatestPdf}
-                      type="button"
-                    >
-                      <FontAwesomeIcon icon={faUpRightFromSquare} />
-                      <span>Open</span>
-                    </button>
-                  ]}
-                >
-                  <div className="d-flex flex-column gap-3">
-                    {pdfErrorMessage ? (
-                      <div className="alert alert-danger mb-0">
-                        {pdfErrorMessage}
-                      </div>
-                    ) : null}
-
-                    {activeCompileJob ? (
-                      <div className="alert alert-info mb-0">Compilation in progress...</div>
-                    ) : null}
-
-                    {compileJob?.status === "failed" ? (
-                      <div className="alert alert-danger mb-0">
-                        Compilation failed. Review the build logs below.
-                      </div>
-                    ) : null}
-
-                    {isPdfLoading ? (
-                      <Loader />
-                    ) : null}
-
-                    {!isPdfLoading && !pdfAvailable ? (
-                      <div className="talalm-empty-state">
-                        <FontAwesomeIcon icon={faFilePdf} />
-                        <span>No compiled PDF available.</span>
-                        <span className="text-muted">Compile the project to generate a PDF.</span>
-                      </div>
-                    ) : null}
-
-                    {!isPdfLoading && pdfAvailable && pdfUrl ? (
-                      <div className="border bg-body-tertiary" style={{ minHeight: "64vh" }}>
-                        <iframe
-                          className="border-0 d-block w-100"
-                          src={pdfUrl}
-                          style={{ height: "64vh" }}
-                          title="PDF Preview"
-                        />
-                      </div>
-                    ) : null}
-                  </div>
-                </AdminContent>
-                  </div>
-                </div>
-              ) : null}
-
-              {activeWorkspaceTab === "logs" ? (
-                <AdminContent
-                  title="Build Logs"
-                  headerActions={[
-                    compileJob?.status === "success" ? (
-                      <button
-                        className="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-2"
-                        disabled={isDownloadingPdf}
-                        key="open-pdf"
-                        onClick={openCompilePdf}
-                        type="button"
-                      >
-                        <span>{isDownloadingPdf ? "Opening..." : "Open Job PDF"}</span>
-                      </button>
-                    ) : null
-                  ].filter(Boolean)}
-                >
-                  <div className="d-flex flex-column gap-3">
-                    {compileErrorMessage ? (
-                      <div className="alert alert-danger mb-0">
-                        {compileErrorMessage}
-                      </div>
-                    ) : null}
-
-                    {compileJob ? (
-                      <div className="d-flex flex-wrap align-items-center gap-2">
-                        <span className="talalm-label">Status</span>
-                        <span className={`badge ${compileJob.status === "success" ? "text-bg-success" : compileJob.status === "failed" ? "text-bg-danger" : "text-bg-secondary"}`}>
-                          {compileJob.status.toUpperCase()}
-                        </span>
-                        {compileJob.status === "pending" ? (
-                          <span className="text-muted">Compilation queued...</span>
-                        ) : null}
-                        {compileJob.status === "running" ? (
-                          <span className="text-muted">Compiling...</span>
-                        ) : null}
-                        {compileJob.status === "success" ? (
-                          <span className="text-muted">Compilation successful.</span>
-                        ) : null}
-                        {compileJob.status === "failed" ? (
-                          <span className="text-muted">Compilation failed.</span>
-                        ) : null}
-                      </div>
-                    ) : (
-                      <div className="text-muted">No compile job has run yet.</div>
-                    )}
-
-                    {compileJob?.error_message ? (
-                      <div className="alert alert-danger mb-0">
-                        {compileJob.error_message}
-                      </div>
-                    ) : null}
-
-                    <pre
-                      className="talalm-build-log mb-0 p-3"
-                      ref={buildLogRef}
-                      style={{ maxHeight: "18rem", overflowY: "auto", whiteSpace: "pre-wrap" }}
-                    >
-                      {compileJob?.logs || "Build logs will appear here after compilation starts."}
-                    </pre>
-                  </div>
-                </AdminContent>
-              ) : null}
-
-              {activeWorkspaceTab === "actions" ? (
-                <AdminContent title="Actions">
-                  <div className="d-flex flex-column gap-3">
-                    {deletePaperErrorMessage ? (
-                      <div className="alert alert-danger mb-0">
-                        {deletePaperErrorMessage}
-                      </div>
-                    ) : null}
-
-                    <div className="border border-danger p-3">
-                      <div className="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
-                        <div>
-                          <h2 className="h5 mb-2">Delete Paper</h2>
-                          <p className="mb-0 text-muted">
-                            Permanently delete this paper, its uploaded project files, compile jobs, build logs, and generated PDFs.
-                          </p>
-                        </div>
-                        <button
-                          className="btn btn-outline-danger d-inline-flex align-items-center gap-2 flex-shrink-0"
-                          onClick={openDeletePaperModal}
-                          type="button"
-                        >
-                          <FontAwesomeIcon icon={faTrash} />
-                          <span>Delete Paper</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </AdminContent>
-              ) : null}
-            </div>
+            <PaperWorkspace
+              activeCompileJob={activeCompileJob}
+              activeWorkspaceTab={activeWorkspaceTab}
+              buildLogRef={buildLogRef}
+              compileErrorMessage={compileErrorMessage}
+              compileJob={compileJob}
+              contentErrorMessage={contentErrorMessage}
+              deletePaperErrorMessage={deletePaperErrorMessage}
+              deletingFileIds={deletingFileIds}
+              editorValue={editorValue}
+              expandedFolders={expandedFolders}
+              fileInputRef={fileInputRef}
+              fileTree={fileTree}
+              filesErrorMessage={filesErrorMessage}
+              folderInputRef={folderInputRef}
+              folderPaths={folderPaths}
+              isContentLoading={isContentLoading}
+              isDownloadingPdf={isDownloadingPdf}
+              isFilesLoading={isFilesLoading}
+              isPdfLoading={isPdfLoading}
+              isSelectedFileEditable={isSelectedFileEditable}
+              isUploading={isUploading}
+              monacoTheme={monacoTheme}
+              onChangeEditorValue={(value) => {
+                setEditorValue(value || "");
+                setSaveStatus("unsaved");
+                setSaveMessage("");
+              }}
+              onChangeTab={setActiveWorkspaceTab}
+              onDeleteFile={handleDeleteFile}
+              onDeleteFolder={openDeleteFolderModal}
+              onDeletePaper={openDeletePaperModal}
+              onDownloadPdf={downloadLatestPdf}
+              onFileSelection={handleFileSelection}
+              onFolderSelection={handleFolderSelection}
+              onOpenFilePicker={openFilePicker}
+              onOpenFolderPicker={openFolderPicker}
+              onOpenJobPdf={openCompilePdf}
+              onOpenPdf={openLatestPdf}
+              onRefreshPdf={() => refreshLatestPdf()}
+              onReloadFile={reloadSelectedFile}
+              onSelectFile={switchToPaperFile}
+              onToggleFolder={toggleFolder}
+              onUploadDestinationChange={setUploadDestinationPath}
+              paperFiles={paperFiles}
+              pdfAvailable={pdfAvailable}
+              pdfErrorMessage={pdfErrorMessage}
+              pdfUrl={pdfUrl}
+              saveMessage={saveMessage}
+              saveStatus={saveStatus}
+              selectedPaperFile={selectedPaperFile}
+              uploadDestinationPath={uploadDestinationPath}
+              uploadErrorMessage={uploadErrorMessage}
+              uploadProgress={uploadProgress}
+            />
           ) : null}
         </React.Fragment>
       )}
 
-      <ConfirmationModal
-        content={`Delete "${paper?.name || "this paper"}" and all related files, build logs, and generated PDFs? This cannot be undone.`}
-        header="Delete Paper"
-        isLoading={isDeletingPaper}
-        loadingContent="Deleting paper..."
-        onPrimaryClicked={deletePaper}
-        onSecondaryClicked={closeDeletePaperModal}
-        show={showDeletePaperModal}
-      />
-      <ConfirmationModal
-        content={deleteFolderErrorMessage || `Delete folder "${folderToDelete?.path || ""}" and all files inside it? This cannot be undone.`}
-        header="Delete Folder"
-        isLoading={isDeletingFolder}
-        loadingContent="Deleting folder..."
-        onPrimaryClicked={deleteFolder}
-        onSecondaryClicked={closeDeleteFolderModal}
-        show={Boolean(folderToDelete)}
+      <DeleteModals
+        deleteFolder={deleteFolder}
+        deleteFolderErrorMessage={deleteFolderErrorMessage}
+        deletePaper={deletePaper}
+        folderToDelete={folderToDelete}
+        isDeletingFolder={isDeletingFolder}
+        isDeletingPaper={isDeletingPaper}
+        onCloseFolderModal={closeDeleteFolderModal}
+        onClosePaperModal={closeDeletePaperModal}
+        paper={paper}
+        showDeletePaperModal={showDeletePaperModal}
       />
     </div>
   );
