@@ -760,6 +760,15 @@ body[data-theme="light"] .talalm-badge-processing {
   font-size: 0.78rem;
 }
 
+.talalm-build-log {
+  background: var(--talalm-surface-lowest);
+  border: 1px solid var(--talalm-border);
+  color: var(--talalm-text-strong);
+  font-family: $font-mono;
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
 .talalm-chat-log {
   display: flex;
   flex: 1 1 auto;

@@ -2,6 +2,7 @@ import {
   faDashboard,
   faGears,
   faBook,
+  faFileLines,
   faMicrochip,
   faPlug,
   faStethoscope,
@@ -36,6 +37,15 @@ export const navigationServices = [
     icon: faBook,
     section: "main",
     keywords: ["documents", "rag", "knowledge", "search"]
+  },
+  {
+    id: "papers",
+    label: "Papers",
+    description: "Browse LaTeX paper projects and open paper workspaces.",
+    path: "/papers",
+    icon: faFileLines,
+    section: "main",
+    keywords: ["latex", "writing", "papers", "tex"]
   },
   {
     id: "connectors",

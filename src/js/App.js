@@ -14,6 +14,8 @@ import Doctor from "./Doctor";
 import LocalModelsIndex from "./LocalModelsIndex";
 import NotebooksIndex from "./notebooks/Index";
 import NotebooksShow from "./notebooks/Show";
+import PapersIndex from "./papers/Index";
+import PaperShow from "./papers/Show";
 import Settings from "./Settings";
 import ConnectorsForm from "./connectors/Form";
 import ConnectorsIndex from "./connectors/Index";
@@ -114,6 +116,14 @@ const AuthenticatedApp = ({ theme, onToggleTheme }) => {
             <Route
               path="/notebooks/:id"
               element={<NotebooksShow />}
+            />
+            <Route
+              path="/papers"
+              element={<PapersIndex />}
+            />
+            <Route
+              path="/papers/:id"
+              element={<PaperShow />}
             />
             <Route
               path="/doctor"
