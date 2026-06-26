@@ -1,5 +1,4 @@
 import React from "react";
-import ActionsPanel from "./ActionsPanel";
 import BuildLogsPanel from "./BuildLogsPanel";
 import EditorPanel from "./EditorPanel";
 import FilesPanel from "./FilesPanel";
@@ -13,7 +12,6 @@ const PaperWorkspace = ({
   compileErrorMessage,
   compileJob,
   contentErrorMessage,
-  deletePaperErrorMessage,
   deletingFileIds,
   editorValue,
   expandedFolders,
@@ -33,7 +31,6 @@ const PaperWorkspace = ({
   onChangeTab,
   onDeleteFile,
   onDeleteFolder,
-  onDeletePaper,
   onDownloadPdf,
   onFileSelection,
   onFolderSelection,
@@ -58,12 +55,12 @@ const PaperWorkspace = ({
   uploadProgress
 }) => {
   return (
-    <div className="d-flex flex-column gap-4">
+    <div className="d-flex flex-column talalm-paper-workspace">
       <WorkspaceTabs activeTab={activeWorkspaceTab} compileJob={compileJob} onChange={onChangeTab} />
 
       {activeWorkspaceTab === "workspace" ? (
-        <div className="row g-4">
-          <div className="col-12 col-xl-2">
+        <div className="talalm-paper-workspace-grid">
+          <div className="talalm-paper-files-column">
             <FilesPanel
               deletingFileIds={deletingFileIds}
               expandedFolders={expandedFolders}
@@ -91,7 +88,7 @@ const PaperWorkspace = ({
             />
           </div>
 
-          <div className="col-12 col-xl-5">
+          <div className="talalm-paper-editor-column">
             <EditorPanel
               contentErrorMessage={contentErrorMessage}
               editorValue={editorValue}
@@ -106,7 +103,7 @@ const PaperWorkspace = ({
             />
           </div>
 
-          <div className="col-12 col-xl-5">
+          <div className="talalm-paper-preview-column">
             <PdfPreviewPanel
               activeCompileJob={activeCompileJob}
               compileJob={compileJob}
@@ -132,9 +129,6 @@ const PaperWorkspace = ({
         />
       ) : null}
 
-      {activeWorkspaceTab === "actions" ? (
-        <ActionsPanel deletePaperErrorMessage={deletePaperErrorMessage} onDeletePaper={onDeletePaper} />
-      ) : null}
     </div>
   );
 };

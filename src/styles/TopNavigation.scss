@@ -3,11 +3,16 @@
 .top-navigation {
   position: sticky;
   top: 0;
-  background: var(--talalm-surface);
+  background: rgba($talalm-surface, 0.96);
   z-index: 110;
-  padding: 0.75rem 0 0.65rem;
+  padding: 0.6rem 0;
   color: var(--talalm-text);
   border-bottom: 1px solid var(--talalm-border) !important;
+  backdrop-filter: blur(12px);
+}
+
+body[data-theme="light"] .top-navigation {
+  background: rgba(#ffffff, 0.96);
 }
 
 .top-navigation .container-fluid {
@@ -29,7 +34,7 @@
 .top-navigation-search-shell {
   position: relative;
   flex: 1 1 520px;
-  max-width: 640px;
+  max-width: 720px;
   min-width: 280px;
 }
 
@@ -46,7 +51,7 @@
 }
 
 .top-navigation-search .form-control {
-  min-height: 40px;
+  min-height: 38px;
   padding-left: 2.4rem;
   border: 1px solid var(--talalm-border);
   background: var(--talalm-surface-lowest);
@@ -73,7 +78,8 @@
   overflow: hidden;
   border: 1px solid var(--talalm-border);
   background: var(--talalm-surface);
-  box-shadow: none !important;
+  box-shadow: 0 16px 40px rgba(#000000, 0.28) !important;
+  z-index: 50;
 }
 
 .top-navigation-service-result {
@@ -87,7 +93,8 @@
   background: transparent;
   color: var(--talalm-text);
   text-align: left;
-  transition: background 0.2s ease;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease;
 }
 
 .top-navigation-service-result:hover,
@@ -124,7 +131,8 @@
   height: 34px;
   border: 1px solid transparent;
   color: var(--talalm-text-muted);
-  transition: all 0.2s ease;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
 }
 
 .top-navigation-star:hover {
@@ -146,7 +154,7 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 0.8rem;
+  gap: 0.65rem;
   flex: 0 1 auto;
   min-width: 0;
   margin-left: auto;
@@ -157,12 +165,13 @@
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   border: 1px solid var(--talalm-border);
   background: var(--talalm-surface-lowest);
   color: var(--talalm-text-strong);
-  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
 }
 
 .top-navigation-theme-toggle:hover,
@@ -176,6 +185,7 @@
 .top-navigation-user {
   min-width: 0;
   line-height: 1.1;
+  padding: 0.2rem 0.15rem;
 }
 
 .top-navigation-user p,
@@ -225,7 +235,8 @@
   border: 1px solid var(--talalm-border);
   background: var(--talalm-surface-low);
   color: var(--talalm-text);
-  transition: all 0.2s ease;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
 }
 
 .top-navigation-pinned-item:hover,

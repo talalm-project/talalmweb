@@ -68,8 +68,8 @@ const PdfPreviewPanel = ({
         ) : null}
 
         {!isPdfLoading && pdfAvailable && pdfUrl ? (
-          <div className="border bg-body-tertiary" style={{ minHeight: "64vh" }}>
-            <iframe className="border-0 d-block w-100" src={pdfUrl} style={{ height: "64vh" }} title="PDF Preview" />
+          <div className="border bg-body-tertiary talalm-paper-preview-shell">
+            <iframe className="border-0 d-block w-100 h-100" src={pdfUrl} title="PDF Preview" />
           </div>
         ) : null}
       </div>

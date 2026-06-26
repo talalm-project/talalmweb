@@ -307,3 +307,10 @@ Keep the code straightforward, close to the existing project style, and easy for
 
 - Buttons shoudl have corresponding icons.
 - Use badges for statuses
+
+## UI/UX Design Changes
+
+- Before implementing design, layout, visual polish, or usability changes, use the local UI/UX Pro Max skill in `.codex/skills/ui-ux-pro-max`.
+- Read `.codex/skills/ui-ux-pro-max/SKILL.md` and follow its required workflow, including the initial `--design-system` search.
+- Apply the skill output in sympathy with this repository's existing Bootstrap, FontAwesome, dark/light token, and admin-panel conventions.
+- For design-only requests, analyze and document first. Do not redesign or implement UI changes unless the task explicitly requests implementation.

@@ -1,7 +1,7 @@
 import React from "react";
 import Editor from "@monaco-editor/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faFileLines } from "@fortawesome/free-solid-svg-icons";
+import { faFileLines, faRotate } from "@fortawesome/free-solid-svg-icons";
 import AdminContent from "../../commons/AdminContent";
 import Loader from "../../commons/Loader";
 import { languageFor, saveStatusLabelFor } from "./helpers";
@@ -19,22 +19,26 @@ const EditorPanel = ({
   selectedPaperFile
 }) => {
   const saveStatusLabel = saveStatusLabelFor(saveStatus);
+  const headerActions = selectedPaperFile && isSelectedFileEditable ? [
+    <span className={`badge ${saveStatusLabel.className}`} key="save-status">
+      {saveStatusLabel.label}
+    </span>,
+    saveMessage ? (
+      <span className="badge text-bg-success" key="save-message">
+        {saveMessage}
+      </span>
+    ) : null,
+    saveStatus === "save_failed" ? (
+      <button className="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-2" key="reload-file" onClick={onReloadFile} type="button">
+        <FontAwesomeIcon icon={faRotate} />
+        <span>Reload</span>
+      </button>
+    ) : null
+  ].filter(Boolean) : [];
 
   return (
-    <AdminContent title={selectedPaperFile ? selectedPaperFile.path : "Editor"}>
+    <AdminContent headerActions={headerActions} title={selectedPaperFile ? selectedPaperFile.path : "Editor"}>
       <div className="d-flex flex-column gap-3">
-        {selectedPaperFile && isSelectedFileEditable ? (
-          <div className="d-flex flex-wrap align-items-center gap-2">
-            <span className={`badge ${saveStatusLabel.className}`}>{saveStatusLabel.label}</span>
-            {saveMessage ? <span className="badge text-bg-success">{saveMessage}</span> : null}
-            {saveStatus === "save_failed" ? (
-              <button className="btn btn-outline-secondary btn-sm" onClick={onReloadFile} type="button">
-                Reload File
-              </button>
-            ) : null}
-          </div>
-        ) : null}
-
         {contentErrorMessage ? (
           <div className={isSelectedFileEditable ? "alert alert-danger mb-0" : "alert alert-info mb-0"}>
             {contentErrorMessage}
@@ -51,9 +55,9 @@ const EditorPanel = ({
         {selectedPaperFile && isContentLoading ? <Loader /> : null}
 
         {selectedPaperFile && isSelectedFileEditable && !isContentLoading ? (
-          <div className="border">
+          <div className="border talalm-paper-editor-shell">
             <Editor
-              height="64vh"
+              height="100%"
               language={languageFor(selectedPaperFile)}
               onChange={onChange}
               options={{

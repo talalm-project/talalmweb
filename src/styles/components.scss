@@ -24,22 +24,31 @@
 }
 
 body[data-theme="light"] {
-  --talalm-bg: #f4f6f8;
+  --talalm-bg: #f5f7fb;
   --talalm-surface-lowest: #ffffff;
-  --talalm-surface-low: #eef2f5;
+  --talalm-surface-low: #f0f4f8;
   --talalm-surface: #ffffff;
-  --talalm-surface-high: #e7edf2;
-  --talalm-surface-highest: #d8e1e8;
-  --talalm-text: #344054;
-  --talalm-text-strong: #111827;
-  --talalm-text-muted: #667085;
-  --talalm-border: #cbd5df;
-  --talalm-border-strong: #98a2b3;
-  --talalm-primary: #4f56b3;
-  --talalm-primary-bright: #343b91;
+  --talalm-surface-high: #e8eef6;
+  --talalm-surface-highest: #d7e1ed;
+  --talalm-text: #263244;
+  --talalm-text-strong: #0f172a;
+  --talalm-text-muted: #526175;
+  --talalm-border: #c5d0dd;
+  --talalm-border-strong: #8493a8;
+  --talalm-primary: #4258d6;
+  --talalm-primary-bright: #253aa8;
   --talalm-primary-ink: #ffffff;
-  --talalm-secondary: #9f7a12;
+  --talalm-secondary: #087f6f;
   color-scheme: light;
+}
+
+* {
+  scrollbar-color: var(--talalm-border-strong) var(--talalm-surface-low);
+}
+
+:focus-visible {
+  outline: 2px solid var(--talalm-primary-bright);
+  outline-offset: 2px;
 }
 
 .talalm-panel,
@@ -51,6 +60,20 @@ body[data-theme="light"] {
   box-shadow: none !important;
 }
 
+.talalm-panel {
+  position: relative;
+}
+
+.talalm-panel::before {
+  content: "";
+  position: absolute;
+  inset: -1px auto -1px -1px;
+  width: 3px;
+  background: linear-gradient(180deg, var(--talalm-primary), transparent 68%);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
 .talalm-panel-header,
 .card-header {
   background: var(--talalm-surface-high);
@@ -58,6 +81,13 @@ body[data-theme="light"] {
   color: var(--talalm-text-strong);
   font-family: $font-heading;
   font-weight: 700;
+}
+
+.card-header .fw-bold {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2rem;
 }
 
 .talalm-panel-body,
@@ -74,6 +104,12 @@ body[data-theme="light"] {
 .talalm-stat-card {
   height: 100%;
   padding: 1rem;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.talalm-stat-card:hover {
+  background: var(--talalm-surface-high);
+  border-color: var(--talalm-border-strong);
 }
 
 .talalm-stat-label,
@@ -147,11 +183,25 @@ body[data-theme="light"] {
   color: $talalm-success !important;
 }
 
+body[data-theme="light"] .text-bg-success,
+body[data-theme="light"] .talalm-badge-success {
+  background: #dcfce7 !important;
+  border-color: #16a34a !important;
+  color: #166534 !important;
+}
+
 .text-bg-warning,
 .talalm-badge-warning {
   background: rgba($talalm-warning, 0.16) !important;
   border-color: rgba($talalm-warning, 0.75) !important;
   color: $talalm-warning !important;
+}
+
+body[data-theme="light"] .text-bg-warning,
+body[data-theme="light"] .talalm-badge-warning {
+  background: #fef3c7 !important;
+  border-color: #d97706 !important;
+  color: #92400e !important;
 }
 
 .talalm-badge-processing {
@@ -173,11 +223,25 @@ body[data-theme="light"] .talalm-badge-processing {
   color: $talalm-danger !important;
 }
 
+body[data-theme="light"] .text-bg-danger,
+body[data-theme="light"] .talalm-badge-danger {
+  background: #fee2e2 !important;
+  border-color: #dc2626 !important;
+  color: #991b1b !important;
+}
+
 .text-bg-info,
 .talalm-badge-info {
   background: rgba($talalm-info, 0.16) !important;
   border-color: rgba($talalm-info, 0.75) !important;
   color: $talalm-info !important;
+}
+
+body[data-theme="light"] .text-bg-info,
+body[data-theme="light"] .talalm-badge-info {
+  background: #dbeafe !important;
+  border-color: #2563eb !important;
+  color: #1e40af !important;
 }
 
 .text-bg-dark,
@@ -221,6 +285,7 @@ body[data-theme="light"] .talalm-badge-processing {
 
 .talalm-empty-state {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 0.55rem;
@@ -230,6 +295,504 @@ body[data-theme="light"] .talalm-badge-processing {
   border: 1px dashed var(--talalm-border);
   color: var(--talalm-text-muted);
   font-weight: 700;
+  text-align: center;
+}
+
+.talalm-empty-state svg {
+  color: var(--talalm-primary-bright);
+}
+
+.btn,
+.form-control,
+.form-select,
+.input-group-text,
+.list-group-item,
+.page-link,
+.modal-content,
+.alert {
+  border-radius: 0 !important;
+}
+
+.btn {
+  border-color: var(--talalm-border);
+  font-weight: 800;
+  letter-spacing: 0;
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, opacity 0.18s ease;
+}
+
+.btn:disabled,
+.btn.disabled {
+  opacity: 0.48;
+}
+
+.btn-primary {
+  background: var(--talalm-primary);
+  border-color: var(--talalm-primary);
+  color: var(--talalm-primary-ink);
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  background: var(--talalm-primary-bright);
+  border-color: var(--talalm-primary-bright);
+  color: var(--talalm-primary-ink);
+}
+
+.btn-outline-primary {
+  border-color: var(--talalm-primary);
+  color: var(--talalm-primary-bright);
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus {
+  background: var(--talalm-primary);
+  border-color: var(--talalm-primary);
+  color: var(--talalm-primary-ink);
+}
+
+.btn-outline-secondary {
+  border-color: var(--talalm-border-strong);
+  color: var(--talalm-text-strong);
+}
+
+.btn-outline-secondary:hover,
+.btn-outline-secondary:focus {
+  background: var(--talalm-surface-highest);
+  border-color: var(--talalm-primary-bright);
+  color: var(--talalm-text-strong);
+}
+
+.btn-danger,
+.btn-outline-danger:hover,
+.btn-outline-danger:focus {
+  background: rgba($talalm-danger, 0.2);
+  border-color: rgba($talalm-danger, 0.9);
+  color: var(--talalm-text-strong);
+}
+
+.btn-outline-danger {
+  border-color: rgba($talalm-danger, 0.72);
+  color: $talalm-danger;
+}
+
+body[data-theme="light"] .btn-outline-danger {
+  color: #b42318;
+}
+
+.form-label {
+  margin-bottom: 0.38rem;
+  color: var(--talalm-text-strong);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.form-control,
+.form-select,
+.input-group-text {
+  min-height: 2.45rem;
+  border-color: var(--talalm-border);
+  background-color: var(--talalm-surface-lowest);
+  color: var(--talalm-text-strong);
+  box-shadow: none !important;
+}
+
+.form-control::placeholder {
+  color: var(--talalm-text-muted);
+  opacity: 0.85;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--talalm-primary-bright);
+  background-color: var(--talalm-surface-lowest);
+  color: var(--talalm-text-strong);
+  box-shadow: inset 0 -2px 0 var(--talalm-primary) !important;
+}
+
+.form-text {
+  color: var(--talalm-text-muted);
+}
+
+.table-responsive {
+  border: 1px solid var(--talalm-border);
+}
+
+.table {
+  --bs-table-bg: var(--talalm-surface);
+  --bs-table-color: var(--talalm-text);
+  --bs-table-border-color: var(--talalm-border);
+  --bs-table-hover-bg: var(--talalm-surface-high);
+  --bs-table-hover-color: var(--talalm-text-strong);
+  margin-bottom: 0;
+}
+
+.table > :not(caption) > * > * {
+  padding: 0.74rem 0.85rem;
+  vertical-align: middle;
+}
+
+.table-sm > :not(caption) > * > * {
+  padding: 0.55rem 0.7rem;
+}
+
+.table thead th,
+.table-light th {
+  background: var(--talalm-surface-high) !important;
+  color: var(--talalm-text-strong) !important;
+  border-bottom: 1px solid var(--talalm-border-strong);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.table tbody tr {
+  transition: background 0.16s ease;
+}
+
+.table tbody td {
+  border-color: var(--talalm-border);
+}
+
+.list-group {
+  border-radius: 0;
+}
+
+.list-group-item {
+  border-color: var(--talalm-border);
+  background: var(--talalm-surface);
+  color: var(--talalm-text);
+  transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+}
+
+.list-group-item:hover {
+  background: var(--talalm-surface-high);
+}
+
+.list-group-item.active {
+  background: rgba($talalm-primary, 0.24);
+  border-color: var(--talalm-primary);
+  color: var(--talalm-text-strong);
+  box-shadow: inset 3px 0 0 var(--talalm-primary-bright);
+}
+
+.nav-tabs {
+  border-bottom-color: var(--talalm-border);
+}
+
+.nav-tabs .nav-link {
+  border-color: transparent;
+  color: var(--talalm-text-muted);
+  font-weight: 800;
+}
+
+.nav-tabs .nav-link:hover,
+.nav-tabs .nav-link:focus {
+  border-color: var(--talalm-border);
+  color: var(--talalm-text-strong);
+}
+
+.nav-tabs .nav-link.active {
+  background: var(--talalm-surface);
+  border-color: var(--talalm-border) var(--talalm-border) var(--talalm-surface);
+  color: var(--talalm-text-strong);
+}
+
+.alert {
+  border-color: var(--talalm-border);
+  background: var(--talalm-surface-low);
+  color: var(--talalm-text);
+}
+
+.alert-danger {
+  border-color: rgba($talalm-danger, 0.65);
+  background: rgba($talalm-danger, 0.12);
+  color: var(--talalm-text-strong);
+}
+
+.alert-info {
+  border-color: rgba($talalm-info, 0.65);
+  background: rgba($talalm-info, 0.12);
+  color: var(--talalm-text-strong);
+}
+
+.modal-content {
+  border: 1px solid var(--talalm-border);
+  background: var(--talalm-surface);
+  color: var(--talalm-text);
+}
+
+.modal-header,
+.modal-footer {
+  border-color: var(--talalm-border);
+  background: var(--talalm-surface-high);
+}
+
+.modal-title {
+  color: var(--talalm-text-strong);
+  font-family: $font-heading;
+  font-weight: 800;
+}
+
+.btn-close {
+  filter: invert(1) grayscale(100%);
+  opacity: 0.7;
+}
+
+body[data-theme="light"] .btn-close {
+  filter: none;
+}
+
+.page-link {
+  border-color: var(--talalm-border);
+  background: var(--talalm-surface-lowest);
+  color: var(--talalm-text-strong);
+}
+
+.page-link:hover,
+.page-link:focus {
+  border-color: var(--talalm-primary-bright);
+  background: var(--talalm-surface-high);
+  color: var(--talalm-text-strong);
+}
+
+.active > .page-link,
+.page-link.active {
+  background: var(--talalm-primary);
+  border-color: var(--talalm-primary);
+  color: var(--talalm-primary-ink);
+}
+
+.talalm-paper-show {
+  min-height: calc(100vh - 5.5rem);
+}
+
+.talalm-paper-show .page-header {
+  padding-bottom: 0.65rem;
+}
+
+.talalm-paper-show .page-header-title {
+  font-size: 1.35rem;
+}
+
+.talalm-paper-show .page-header-actions .btn {
+  min-height: 30px;
+  padding: 0.22rem 0.62rem;
+}
+
+.talalm-paper-workspace {
+  flex: 1 1 auto;
+  gap: 0.65rem;
+  min-height: 0;
+}
+
+.talalm-paper-tabs {
+  flex: 0 0 auto;
+}
+
+.talalm-paper-tabs .nav-link {
+  min-height: 2rem;
+  padding: 0.3rem 0.75rem;
+}
+
+.talalm-paper-workspace-grid {
+  display: grid;
+  flex: 1 1 auto;
+  grid-template-columns: minmax(15rem, 0.72fr) minmax(24rem, 1.55fr) minmax(24rem, 1.45fr);
+  gap: 0.85rem;
+  min-height: 0;
+}
+
+.talalm-paper-workspace-grid > div {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+}
+
+.talalm-paper-workspace .talalm-panel {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  margin-bottom: 0 !important;
+  overflow: hidden;
+}
+
+.talalm-paper-workspace .talalm-panel > .card-header {
+  flex: 0 0 auto;
+}
+
+.talalm-paper-workspace .talalm-panel > .card-header > .d-flex {
+  align-items: flex-start !important;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.talalm-paper-workspace .talalm-panel > .card-header .fw-bold {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.talalm-paper-workspace .talalm-panel > .card-body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  padding: 0.75rem;
+  overflow: hidden;
+}
+
+.talalm-paper-editor-column .talalm-panel > .card-body > .d-flex,
+.talalm-paper-preview-column .talalm-panel > .card-body > .d-flex {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.talalm-paper-workspace .talalm-panel > .card-header .btn-group {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.talalm-paper-files-column .talalm-panel > .card-header > .d-flex {
+  align-items: stretch !important;
+  flex-direction: column;
+}
+
+.talalm-paper-files-column .talalm-panel > .card-header .btn-group {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: 100%;
+}
+
+.talalm-paper-files-column .talalm-panel > .card-header .btn {
+  justify-content: center;
+  min-width: 0;
+  white-space: normal;
+}
+
+.talalm-paper-files-panel {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.talalm-paper-upload-target {
+  display: grid;
+  flex: 0 0 auto;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.55rem;
+  margin-bottom: 0.7rem;
+}
+
+.talalm-paper-upload-target .form-label {
+  margin-bottom: 0.25rem;
+  font-size: 0.72rem;
+}
+
+.talalm-paper-files-panel .list-group {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+
+.talalm-paper-file-node {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.talalm-paper-file-name {
+  min-width: 0;
+}
+
+.talalm-paper-file-name > .fw-semibold,
+.talalm-paper-file-name > div {
+  max-width: 100%;
+}
+
+.talalm-paper-file-name .small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.talalm-paper-editor-shell,
+.talalm-paper-preview-shell {
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 0;
+}
+
+.talalm-paper-preview-shell {
+  overflow: hidden;
+}
+
+@media (min-width: 1200px) {
+  .talalm-paper-workspace {
+    height: calc(100vh - 10.25rem);
+  }
+}
+
+@media (max-width: 1399.98px) and (min-width: 1200px) {
+  .talalm-paper-workspace-grid {
+    grid-template-columns: minmax(14.5rem, 0.65fr) minmax(20rem, 1fr) minmax(20rem, 1fr);
+  }
+}
+
+@media (max-width: 1199.98px) {
+  .talalm-paper-workspace {
+    min-height: auto;
+  }
+
+  .talalm-paper-workspace-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .talalm-paper-files-column {
+    grid-column: 1 / -1;
+  }
+
+  .talalm-paper-files-panel .list-group {
+    max-height: 22rem;
+  }
+
+  .talalm-paper-editor-shell,
+  .talalm-paper-preview-shell {
+    height: 34rem;
+    min-height: 34rem;
+  }
+
+  .talalm-paper-workspace .talalm-panel > .card-header > .d-flex {
+    flex-direction: column;
+  }
+
+  .talalm-paper-workspace .talalm-panel > .card-header .btn-group {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .talalm-paper-workspace-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .talalm-paper-editor-shell,
+  .talalm-paper-preview-shell {
+    height: 30rem;
+    min-height: 30rem;
+  }
 }
 
 .talalm-notebook-files {

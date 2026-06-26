@@ -31,15 +31,15 @@ const FileTreeNodes = ({
       const isExpanded = expandedFolders.has(node.path);
       return (
         <React.Fragment key={node.id}>
-          <div className="list-group-item d-flex align-items-center justify-content-between gap-2" style={{ paddingLeft }}>
+          <div className="list-group-item talalm-paper-file-node" style={{ paddingLeft }}>
             <button
-              className="btn btn-link p-0 text-start text-decoration-none d-inline-flex align-items-center gap-2"
+              className="btn btn-link p-0 text-start text-decoration-none d-inline-flex align-items-center gap-2 talalm-paper-file-name"
               onClick={() => onToggleFolder(node.path)}
               type="button"
             >
               <FontAwesomeIcon icon={isExpanded ? faChevronDown : faChevronRight} />
               <FontAwesomeIcon icon={isExpanded ? faFolderOpen : faFolder} />
-              <span className="fw-semibold">{node.label}</span>
+              <span className="fw-semibold text-truncate">{node.label}</span>
             </button>
             <button
               aria-label={`Delete ${node.path}`}
@@ -73,15 +73,15 @@ const FileTreeNodes = ({
     const isDeleting = deletingFileIds.includes(paperFile.id);
     return (
       <div className={`list-group-item ${isSelected ? "active" : ""}`} key={paperFile.id} style={{ paddingLeft }}>
-        <div className="d-flex align-items-start justify-content-between gap-2">
+        <div className="talalm-paper-file-node align-items-start">
           <button
-            className={`btn btn-link p-0 text-start text-decoration-none ${isSelected ? "text-white" : ""}`}
+            className={`btn btn-link p-0 text-start text-decoration-none talalm-paper-file-name ${isSelected ? "text-white" : ""}`}
             onClick={() => onSelectFile(paperFile)}
             type="button"
           >
             <div className="fw-semibold d-inline-flex align-items-center gap-2">
               <FontAwesomeIcon icon={faFileLines} />
-              <span>{node.label}</span>
+              <span className="text-truncate">{node.label}</span>
             </div>
             <div className={isSelected ? "small text-white-50" : "small text-muted"}>
               {formatByteSize(paperFile.size)}
@@ -166,88 +166,89 @@ const FilesPanel = ({
         webkitdirectory=""
       />
 
-      <div className="mb-3">
-        <label className="form-label" htmlFor="paper-upload-destination">
-          Upload destination
-        </label>
-        <select
-          className="form-control"
-          id="paper-upload-destination"
-          onChange={(event) => onUploadDestinationChange(event.target.value)}
-          value={uploadDestinationPath}
-        >
-          {folderPaths.map((folderPath) => (
-            <option key={folderPath} value={folderPath}>
-              {folderPath}
-            </option>
-          ))}
-          <option value="">Project root</option>
-        </select>
-      </div>
-
-      <div className="mb-3">
-        <label className="form-label" htmlFor="paper-custom-upload-destination">
-          New folder path
-        </label>
-        <input
-          className="form-control"
-          id="paper-custom-upload-destination"
-          onChange={(event) => onUploadDestinationChange(event.target.value)}
-          placeholder="source/sections"
-          value={folderPaths.includes(uploadDestinationPath) || uploadDestinationPath === "" ? "" : uploadDestinationPath}
-        />
-        <div className="form-text">
-          Select an existing folder above, or type a new folder path here before uploading.
-        </div>
-      </div>
-
-      {uploadProgress !== null ? (
-        <div className="mb-3">
-          <div className="d-flex justify-content-between small text-muted mb-1">
-            <span>Uploading</span>
-            <span>{uploadProgress}%</span>
+      <div className="talalm-paper-files-panel">
+        <div className="talalm-paper-upload-target">
+          <div>
+            <label className="form-label" htmlFor="paper-upload-destination">
+              Upload destination
+            </label>
+            <select
+              className="form-select form-select-sm"
+              id="paper-upload-destination"
+              onChange={(event) => onUploadDestinationChange(event.target.value)}
+              value={uploadDestinationPath}
+            >
+              {folderPaths.map((folderPath) => (
+                <option key={folderPath} value={folderPath}>
+                  {folderPath}
+                </option>
+              ))}
+              <option value="">Project root</option>
+            </select>
           </div>
-          <div className="progress">
-            <div
-              aria-valuemax="100"
-              aria-valuemin="0"
-              aria-valuenow={uploadProgress}
-              className="progress-bar"
-              role="progressbar"
-              style={{ width: `${uploadProgress}%` }}
+
+          <div>
+            <label className="form-label" htmlFor="paper-custom-upload-destination">
+              New folder path
+            </label>
+            <input
+              className="form-control form-control-sm"
+              id="paper-custom-upload-destination"
+              onChange={(event) => onUploadDestinationChange(event.target.value)}
+              placeholder="source/sections"
+              value={folderPaths.includes(uploadDestinationPath) || uploadDestinationPath === "" ? "" : uploadDestinationPath}
             />
           </div>
         </div>
-      ) : null}
 
-      {uploadErrorMessage ? <div className="alert alert-danger">{uploadErrorMessage}</div> : null}
-      {filesErrorMessage ? <div className="alert alert-danger">{filesErrorMessage}</div> : null}
-
-      {isFilesLoading ? (
-        <Loader />
-      ) : (
-        <React.Fragment>
-          {paperFiles.length === 0 ? (
-            <div className="talalm-empty-state">
-              <FontAwesomeIcon icon={faFolderOpen} />
-              <span>No files uploaded.</span>
+        {uploadProgress !== null ? (
+          <div className="mb-3">
+            <div className="d-flex justify-content-between small text-muted mb-1">
+              <span>Uploading</span>
+              <span>{uploadProgress}%</span>
             </div>
-          ) : (
-            <div className="list-group">
-              <FileTreeNodes
-                deletingFileIds={deletingFileIds}
-                expandedFolders={expandedFolders}
-                nodes={fileTree}
-                onDeleteFile={onDeleteFile}
-                onDeleteFolder={onDeleteFolder}
-                onSelectFile={onSelectFile}
-                onToggleFolder={onToggleFolder}
-                selectedPaperFile={selectedPaperFile}
+            <div className="progress">
+              <div
+                aria-valuemax="100"
+                aria-valuemin="0"
+                aria-valuenow={uploadProgress}
+                className="progress-bar"
+                role="progressbar"
+                style={{ width: `${uploadProgress}%` }}
               />
             </div>
-          )}
-        </React.Fragment>
-      )}
+          </div>
+        ) : null}
+
+        {uploadErrorMessage ? <div className="alert alert-danger">{uploadErrorMessage}</div> : null}
+        {filesErrorMessage ? <div className="alert alert-danger">{filesErrorMessage}</div> : null}
+
+        {isFilesLoading ? (
+          <Loader />
+        ) : (
+          <React.Fragment>
+            {paperFiles.length === 0 ? (
+              <div className="talalm-empty-state">
+                <FontAwesomeIcon icon={faFolderOpen} />
+                <span>No files uploaded.</span>
+              </div>
+            ) : (
+              <div className="list-group">
+                <FileTreeNodes
+                  deletingFileIds={deletingFileIds}
+                  expandedFolders={expandedFolders}
+                  nodes={fileTree}
+                  onDeleteFile={onDeleteFile}
+                  onDeleteFolder={onDeleteFolder}
+                  onSelectFile={onSelectFile}
+                  onToggleFolder={onToggleFolder}
+                  selectedPaperFile={selectedPaperFile}
+                />
+              </div>
+            )}
+          </React.Fragment>
+        )}
+      </div>
     </AdminContent>
   );
 };

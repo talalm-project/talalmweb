@@ -24,6 +24,8 @@ body {
   background: var(--talalm-bg);
   color: var(--talalm-text);
   font-family: variables.$font-body;
+  line-height: 1.45;
+  text-rendering: optimizeLegibility;
 }
 
 .clickable {
@@ -44,10 +46,15 @@ body {
 
 a {
   color: var(--talalm-primary-bright);
+  text-underline-offset: 0.18em;
 }
 
 .text-muted {
   color: var(--talalm-text-muted) !important;
+}
+
+.text-danger {
+  color: var(--talalm-danger) !important;
 }
 
 hr {

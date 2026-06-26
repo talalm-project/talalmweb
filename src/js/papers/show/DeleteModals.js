@@ -5,6 +5,7 @@ const DeleteModals = ({
   deleteFolder,
   deleteFolderErrorMessage,
   deletePaper,
+  deletePaperErrorMessage,
   folderToDelete,
   isDeletingFolder,
   isDeletingPaper,
@@ -16,7 +17,7 @@ const DeleteModals = ({
   return (
     <React.Fragment>
       <ConfirmationModal
-        content={`Delete "${paper?.name || "this paper"}" and all related files, build logs, and generated PDFs? This cannot be undone.`}
+        content={deletePaperErrorMessage || `Delete "${paper?.name || "this paper"}" and all related files, build logs, and generated PDFs? This cannot be undone.`}
         header="Delete Paper"
         isLoading={isDeletingPaper}
         loadingContent="Deleting paper..."

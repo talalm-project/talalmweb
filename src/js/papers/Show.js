@@ -3,10 +3,9 @@ import { useNavigate, useParams } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faArrowLeft,
-  faDownload,
   faFloppyDisk,
   faPlay,
-  faRotate
+  faTrash
 } from "@fortawesome/free-solid-svg-icons";
 import AdminContent from "../commons/AdminContent";
 import Loader from "../commons/Loader";
@@ -799,32 +798,18 @@ const PaperShow = () => {
 
   headerActions.push(
     <button
-      className="btn btn-outline-secondary d-inline-flex align-items-center gap-2"
-      disabled={isPdfLoading}
-      key="refresh-pdf"
-      onClick={() => refreshLatestPdf()}
+      className="btn btn-outline-danger d-inline-flex align-items-center gap-2"
+      key="delete-paper"
+      onClick={openDeletePaperModal}
       type="button"
     >
-      <FontAwesomeIcon icon={faRotate} />
-      <span>{isPdfLoading ? "Refreshing..." : "Refresh PDF"}</span>
-    </button>
-  );
-
-  headerActions.push(
-    <button
-      className="btn btn-outline-secondary d-inline-flex align-items-center gap-2"
-      disabled={!pdfAvailable || isPdfLoading}
-      key="download-pdf"
-      onClick={downloadLatestPdf}
-      type="button"
-    >
-      <FontAwesomeIcon icon={faDownload} />
-      <span>Download PDF</span>
+      <FontAwesomeIcon icon={faTrash} />
+      <span>Delete</span>
     </button>
   );
 
   return (
-    <div className="d-flex flex-column gap-4">
+    <div className="d-flex flex-column gap-3 talalm-paper-show">
       <PageHeader eyebrow="Writing" title={paper ? paper.name : "Paper"} actions={headerActions} />
 
       {isLoading ? (
@@ -843,7 +828,6 @@ const PaperShow = () => {
               compileErrorMessage={compileErrorMessage}
               compileJob={compileJob}
               contentErrorMessage={contentErrorMessage}
-              deletePaperErrorMessage={deletePaperErrorMessage}
               deletingFileIds={deletingFileIds}
               editorValue={editorValue}
               expandedFolders={expandedFolders}
@@ -867,7 +851,6 @@ const PaperShow = () => {
               onChangeTab={setActiveWorkspaceTab}
               onDeleteFile={handleDeleteFile}
               onDeleteFolder={openDeleteFolderModal}
-              onDeletePaper={openDeletePaperModal}
               onDownloadPdf={downloadLatestPdf}
               onFileSelection={handleFileSelection}
               onFolderSelection={handleFolderSelection}
@@ -899,6 +882,7 @@ const PaperShow = () => {
         deleteFolder={deleteFolder}
         deleteFolderErrorMessage={deleteFolderErrorMessage}
         deletePaper={deletePaper}
+        deletePaperErrorMessage={deletePaperErrorMessage}
         folderToDelete={folderToDelete}
         isDeletingFolder={isDeletingFolder}
         isDeletingPaper={isDeletingPaper}

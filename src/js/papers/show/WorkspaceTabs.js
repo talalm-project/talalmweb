@@ -1,6 +1,6 @@
 import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faFileLines, faTerminal, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faFileLines, faTerminal } from "@fortawesome/free-solid-svg-icons";
 
 const statusBadgeClassName = (status) => {
   if (status === "success") {
@@ -15,7 +15,7 @@ const statusBadgeClassName = (status) => {
 
 const WorkspaceTabs = ({ activeTab, compileJob, onChange }) => {
   return (
-    <ul className="nav nav-tabs" role="tablist">
+    <ul className="nav nav-tabs talalm-paper-tabs" role="tablist">
       <li className="nav-item" role="presentation">
         <button
           aria-selected={activeTab === "workspace"}
@@ -25,7 +25,7 @@ const WorkspaceTabs = ({ activeTab, compileJob, onChange }) => {
           type="button"
         >
           <FontAwesomeIcon icon={faFileLines} />
-          <span>Editor</span>
+          <span>Workspace</span>
         </button>
       </li>
       <li className="nav-item" role="presentation">
@@ -43,18 +43,6 @@ const WorkspaceTabs = ({ activeTab, compileJob, onChange }) => {
               {compileJob.status}
             </span>
           ) : null}
-        </button>
-      </li>
-      <li className="nav-item" role="presentation">
-        <button
-          aria-selected={activeTab === "actions"}
-          className={`nav-link d-inline-flex align-items-center gap-2 ${activeTab === "actions" ? "active" : ""}`}
-          onClick={() => onChange("actions")}
-          role="tab"
-          type="button"
-        >
-          <FontAwesomeIcon icon={faTrash} />
-          <span>Actions</span>
         </button>
       </li>
     </ul>

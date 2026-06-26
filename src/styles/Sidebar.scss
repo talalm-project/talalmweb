@@ -19,7 +19,7 @@
   left: 0;
   height: 100%;
   width: $sidebar-active-width;
-  background: var(--talalm-surface-low);
+  background: var(--talalm-surface-lowest);
   border-right: 1px solid var(--talalm-border);
   z-index: 100;
   transition: width 0.3s ease;
@@ -48,6 +48,7 @@
   display: flex;
   align-items: center;
   border-bottom: 1px solid var(--talalm-border);
+  background: var(--talalm-surface-low);
 }
 
 .sidebar .logo-details i {
@@ -65,7 +66,7 @@
   color: var(--talalm-text-strong);
   font-family: $font-heading;
   font-weight: 800;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   transition: 0.3s ease;
   transition-delay: 0.1s;
 }
@@ -78,7 +79,7 @@
 
 .sidebar .nav-links {
   height: 100%;
-  padding: 16px 0 150px 0;
+  padding: 14px 0.5rem 150px;
   overflow: auto;
 }
 
@@ -93,7 +94,9 @@
 .sidebar .nav-links li {
   position: relative;
   list-style: none;
-  transition: all 0.4s ease;
+  margin: 0.12rem 0;
+  border: 1px solid transparent;
+  transition: background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
 .sidebar .nav-links li.sidebar-divider {
@@ -129,6 +132,7 @@
 .sidebar .nav-links li:hover,
 .sidebar .nav-links li.active {
   background: var(--talalm-surface-high);
+  border-color: var(--talalm-border);
   box-shadow: inset 3px 0 0 var(--talalm-primary);
 }
 
@@ -144,12 +148,12 @@
 
 .sidebar .nav-links li i {
   height: $sidebar-item-height;
-  min-width: $sidebar-closed-width;
+  min-width: calc($sidebar-closed-width - 1rem);
   text-align: center;
   line-height: $sidebar-item-height;
   color: var(--talalm-text-strong);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: color 0.18s ease;
 }
 
 .sidebar .nav-links li:hover i,
@@ -173,11 +177,11 @@
 }
 
 .sidebar .nav-links li a .link-name {
-  margin-left: -15px;
+  margin-left: -8px;
   font-size: $nav-text-size;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--talalm-text-strong);
-  transition: all 0.4s ease;
+  transition: opacity 0.18s ease, color 0.18s ease;
   white-space: nowrap;
 }
 
