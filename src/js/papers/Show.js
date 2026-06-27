@@ -70,7 +70,7 @@ const PaperShow = () => {
   const folderPaths = useMemo(() => folderPathsFor(paperFiles), [paperFiles]);
   const hasUnsavedChanges = selectedPaperFile && isSelectedFileEditable && editorValue !== loadedContent;
   const activeCompileJob = compileJob && ["pending", "running"].includes(compileJob.status);
-  const monacoTheme = document.body.dataset.theme === "light" ? "light" : "vs-dark";
+  const editorTheme = document.body.dataset.theme === "light" ? "light" : "dark";
 
   useEffect(() => {
     editorValueRef.current = editorValue;
@@ -842,7 +842,7 @@ const PaperShow = () => {
               isPdfLoading={isPdfLoading}
               isSelectedFileEditable={isSelectedFileEditable}
               isUploading={isUploading}
-              monacoTheme={monacoTheme}
+              editorTheme={editorTheme}
               onChangeEditorValue={(value) => {
                 setEditorValue(value || "");
                 setSaveStatus("unsaved");

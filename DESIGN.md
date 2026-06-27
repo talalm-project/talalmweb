@@ -49,7 +49,7 @@ This document is based on a source audit plus the local `.codex/skills/ui-ux-pro
 | Notebooks Index | `/notebooks` | Browse/filter notebooks and create notebook | Filter table, create modal, pagination | Good table pattern; modal creation could surface connector-loading states more clearly. |
 | Notebooks Show | `/notebooks/:id` | Chat with notebook, manage files and notes | Collapsible files panel, chat, notes, config, multiple modals | Most complex flow; needs progressive disclosure and stronger responsive/a11y treatment. |
 | Papers Index | `/papers` | Browse paper projects | Table, create modal | Clear and simple; no filtering or pagination. |
-| Paper Show | `/papers/:id` | Edit LaTeX project, upload files, compile, preview PDF | Files tree, Monaco editor, PDF preview, logs, actions | Powerful workspace; needs more formal tab semantics, save/compile feedback, and responsive layout rules. |
+| Paper Show | `/papers/:id` | Edit LaTeX project, upload files, compile, preview PDF | Files tree, CodeMirror LaTeX editor, PDF preview, logs, actions | Powerful workspace; needs more formal tab semantics, save/compile feedback, and responsive layout rules. |
 | Doctor | `/doctor` admin | Inspect sanitized backend config | System config table | Clear diagnostics; redirect handling differs from other pages. |
 | Local Models | `/local-models` admin | Inspect backend model manifest | Model table with type badges | Clear; long paths need reliable wrapping and copy affordance. |
 | Users Index | `/users` admin | Browse users | Table, pagination, create action in panel header | Good resource table; action placement differs from page-level convention. |
@@ -435,7 +435,7 @@ This keeps user tasks grouped by mental model: monitor, work, configure models, 
 - Consistency: Buttons and badges are mostly consistent; tabs, upload controls, detail blocks, and modals are inconsistent.
 - Information density: Appropriate for admin users, but notebook/paper screens should reveal advanced settings progressively.
 - Use of color: Status colors are helpful; avoid using color as the only indicator.
-- Dark mode compatibility: Stronger than light mode. Monaco editor theme follows body dataset.
+- Dark mode compatibility: Stronger than light mode. CodeMirror editor theme follows body dataset.
 - Brand consistency: Login is branded; authenticated pages are more generic admin. Add subtle TALA LM domain cues through labels and IA, not decorative art.
 - Overall polish: Functional and solid; polish gains will come from systematizing spacing, focus, loading, and responsive behavior.
 
@@ -555,4 +555,3 @@ Future component set:
 | Add compile status timeline for papers | Medium | Medium | P4 | Medium |
 | Add saved search/pinned filter presets | Low | Medium | P4 | Low |
 | Add WCAG contrast test automation | High | Medium | P4 | Low |
-

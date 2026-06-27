@@ -26,7 +26,7 @@ const PaperWorkspace = ({
   isPdfLoading,
   isSelectedFileEditable,
   isUploading,
-  monacoTheme,
+  editorTheme,
   onChangeEditorValue,
   onChangeTab,
   onDeleteFile,
@@ -94,7 +94,7 @@ const PaperWorkspace = ({
               editorValue={editorValue}
               isContentLoading={isContentLoading}
               isSelectedFileEditable={isSelectedFileEditable}
-              monacoTheme={monacoTheme}
+              editorTheme={editorTheme}
               onChange={onChangeEditorValue}
               onReloadFile={onReloadFile}
               saveMessage={saveMessage}

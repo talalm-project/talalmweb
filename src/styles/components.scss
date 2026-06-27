@@ -734,6 +734,32 @@ body[data-theme="light"] .btn-close {
   min-height: 0;
 }
 
+.talalm-codemirror-editor {
+  height: 100%;
+  min-height: 0;
+}
+
+.talalm-codemirror-editor .cm-editor {
+  height: 100%;
+  outline: none;
+}
+
+.talalm-codemirror-editor .cm-scroller {
+  overflow: auto;
+}
+
+.talalm-codemirror-editor .cm-focused {
+  outline: 0;
+}
+
+.talalm-codemirror-editor .cm-line {
+  padding-right: 0.85rem;
+}
+
+.talalm-codemirror-editor .cm-foldGutter span {
+  color: var(--talalm-text-muted);
+}
+
 .talalm-paper-preview-shell {
   overflow: hidden;
 }
