@@ -678,6 +678,21 @@ body[data-theme="light"] .btn-close {
   white-space: normal;
 }
 
+.talalm-paper-files-column .talalm-panel > .card-header .talalm-paper-new-file-button {
+  color: var(--talalm-text-muted);
+  grid-column: 1 / -1;
+  justify-self: start;
+  padding-left: 0;
+  padding-right: 0;
+  text-decoration: none;
+}
+
+.talalm-paper-files-column .talalm-panel > .card-header .talalm-paper-new-file-button:hover,
+.talalm-paper-files-column .talalm-panel > .card-header .talalm-paper-new-file-button:focus {
+  color: var(--talalm-primary-bright);
+  text-decoration: none;
+}
+
 .talalm-paper-files-panel {
   display: flex;
   flex: 1 1 auto;
@@ -697,6 +712,111 @@ body[data-theme="light"] .btn-close {
 .talalm-paper-upload-target .form-label {
   margin-bottom: 0.25rem;
   font-size: 0.72rem;
+}
+
+.talalm-new-file-preview {
+  border: 1px solid var(--talalm-border);
+  background: var(--talalm-surface-low);
+  padding: 0.7rem;
+}
+
+.talalm-new-file-preview svg {
+  flex: 0 0 auto;
+  margin-top: 0.15rem;
+  color: var(--talalm-success);
+}
+
+.talalm-new-file-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.talalm-latex-assistant-modal {
+  --bs-modal-width: min(78rem, calc(100vw - 2rem));
+}
+
+.talalm-latex-assistant {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.talalm-latex-assistant-section {
+  min-width: 0;
+  border: 1px solid var(--talalm-border);
+  background: var(--talalm-surface-low);
+  padding: 0.85rem;
+}
+
+.talalm-latex-assistant-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.talalm-latex-reference-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  max-height: 18rem;
+  overflow: auto;
+}
+
+.talalm-latex-reference-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 0.75rem;
+  border: 1px solid var(--talalm-border);
+  background: var(--talalm-surface);
+  padding: 0.7rem;
+}
+
+.talalm-latex-chat-history {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  max-height: 24rem;
+  overflow: auto;
+}
+
+.talalm-latex-chat-message {
+  min-width: 0;
+  border: 1px solid var(--talalm-border);
+  padding: 0.75rem;
+}
+
+.talalm-latex-chat-message-user {
+  margin-left: 3rem;
+  background: var(--talalm-surface);
+}
+
+.talalm-latex-chat-message-assistant {
+  margin-right: 3rem;
+  background: var(--talalm-surface-lowest);
+}
+
+.talalm-latex-chat-meta {
+  color: var(--talalm-text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.talalm-latex-chat-prompt {
+  white-space: pre-wrap;
+}
+
+.talalm-latex-assistant-output {
+  max-height: 18rem;
+  overflow: auto;
+  border: 1px solid var(--talalm-border);
+  background: var(--talalm-surface-lowest);
+  color: var(--talalm-text-strong);
+  padding: 0.85rem;
+  white-space: pre-wrap;
 }
 
 .talalm-paper-files-panel .list-group {
@@ -812,6 +932,16 @@ body[data-theme="light"] .btn-close {
 @media (max-width: 767.98px) {
   .talalm-paper-workspace-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .talalm-latex-assistant-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .talalm-latex-chat-message-user,
+  .talalm-latex-chat-message-assistant {
+    margin-left: 0;
+    margin-right: 0;
   }
 
   .talalm-paper-editor-shell,

@@ -7,6 +7,7 @@ import {
   faFileLines,
   faFolder,
   faFolderOpen,
+  faPlus,
   faTrash
 } from "@fortawesome/free-solid-svg-icons";
 import AdminContent from "../../commons/AdminContent";
@@ -118,6 +119,7 @@ const FilesPanel = ({
   onDeleteFolder,
   onFileSelection,
   onFolderSelection,
+  onOpenCreateFileModal,
   onOpenFilePicker,
   onOpenFolderPicker,
   onSelectFile,
@@ -133,6 +135,16 @@ const FilesPanel = ({
     <AdminContent
       title="Files"
       headerActions={[
+        <button
+          className="btn btn-link btn-sm d-inline-flex align-items-center gap-2 talalm-paper-new-file-button"
+          disabled={isUploading}
+          key="new-file"
+          onClick={onOpenCreateFileModal}
+          type="button"
+        >
+          <FontAwesomeIcon icon={faPlus} />
+          <span>New File</span>
+        </button>,
         <button
           className="btn btn-primary btn-sm d-inline-flex align-items-center gap-2"
           disabled={isUploading}

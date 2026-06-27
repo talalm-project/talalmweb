@@ -5,14 +5,17 @@ import {
   faArrowLeft,
   faFloppyDisk,
   faPlay,
-  faTrash
+  faTrash,
+  faWandMagicSparkles
 } from "@fortawesome/free-solid-svg-icons";
 import AdminContent from "../commons/AdminContent";
 import Loader from "../commons/Loader";
 import PageHeader from "../commons/PageHeader";
 import { destroySession } from "../services/AuthService";
 import PaperService from "../services/PaperService";
+import CreateFileModal from "./show/CreateFileModal";
 import DeleteModals from "./show/DeleteModals";
+import LatexAssistantModal from "./show/LatexAssistantModal";
 import PaperWorkspace from "./show/PaperWorkspace";
 import { AUTOSAVE_DELAY_MS, fileTreeFor, folderPathsFor, joinProjectPath } from "./show/helpers";
 
@@ -48,6 +51,10 @@ const PaperShow = () => {
   const [deletingFileIds, setDeletingFileIds] = useState([]);
   const [activeWorkspaceTab, setActiveWorkspaceTab] = useState("workspace");
   const [showDeletePaperModal, setShowDeletePaperModal] = useState(false);
+  const [showCreateFileModal, setShowCreateFileModal] = useState(false);
+  const [showLatexAssistantModal, setShowLatexAssistantModal] = useState(false);
+  const [isCreatingFile, setIsCreatingFile] = useState(false);
+  const [createFileErrorMessage, setCreateFileErrorMessage] = useState("");
   const [isDeletingPaper, setIsDeletingPaper] = useState(false);
   const [deletePaperErrorMessage, setDeletePaperErrorMessage] = useState("");
   const [folderToDelete, setFolderToDelete] = useState(null);
@@ -606,6 +613,54 @@ const PaperShow = () => {
     uploadFiles(files, { preserveRelativePath: true });
   };
 
+  const createFile = ({ filename, destinationPath }) => {
+    const cleanFilename = String(filename || "").trim();
+    if (!cleanFilename) {
+      setCreateFileErrorMessage("File name is required.");
+      return;
+    }
+
+    const projectPath = joinProjectPath(destinationPath, cleanFilename);
+    const fileNameParts = cleanFilename.split("/").filter(Boolean);
+    const leafFilename = fileNameParts[fileNameParts.length - 1] || cleanFilename;
+    const file = new File([""], leafFilename, { type: "text/plain" });
+
+    setIsCreatingFile(true);
+    setCreateFileErrorMessage("");
+
+    PaperService.uploadPaperFile(id, file, { path: projectPath })
+      .then(async (response) => {
+        const createdFile = response.data;
+        setShowCreateFileModal(false);
+        await loadPaperFiles();
+        setExpandedFolders((currentFolders) => {
+          const nextFolders = new Set(currentFolders);
+          const parts = createdFile.path.split("/").filter(Boolean);
+          for (let index = 1; index < parts.length; index += 1) {
+            nextFolders.add(parts.slice(0, index).join("/"));
+          }
+          return nextFolders;
+        });
+        loadPaperFileContent(createdFile);
+      })
+      .catch((error) => {
+        if (handleAuthError(error)) {
+          return;
+        }
+
+        const errors = error.response?.data;
+        if (errors?.file || errors?.path) {
+          setCreateFileErrorMessage([...errors.file || [], ...errors.path || []].join(", "));
+          return;
+        }
+
+        setCreateFileErrorMessage(error.response?.data?.message || "Unable to create paper file.");
+      })
+      .finally(() => {
+        setIsCreatingFile(false);
+      });
+  };
+
   const uploadFiles = async (files, { preserveRelativePath = false } = {}) => {
     setIsUploading(true);
     setUploadProgress(0);
@@ -786,6 +841,18 @@ const PaperShow = () => {
   headerActions.push(
     <button
       className="btn btn-outline-primary d-inline-flex align-items-center gap-2"
+      key="latex-assistant"
+      onClick={() => setShowLatexAssistantModal(true)}
+      type="button"
+    >
+      <FontAwesomeIcon icon={faWandMagicSparkles} />
+      <span>LaTeX Assistant</span>
+    </button>
+  );
+
+  headerActions.push(
+    <button
+      className="btn btn-outline-primary d-inline-flex align-items-center gap-2"
       disabled={isCompiling || activeCompileJob}
       key="compile-paper"
       onClick={compilePaper}
@@ -854,6 +921,10 @@ const PaperShow = () => {
               onDownloadPdf={downloadLatestPdf}
               onFileSelection={handleFileSelection}
               onFolderSelection={handleFolderSelection}
+              onOpenCreateFileModal={() => {
+                setCreateFileErrorMessage("");
+                setShowCreateFileModal(true);
+              }}
               onOpenFilePicker={openFilePicker}
               onOpenFolderPicker={openFolderPicker}
               onOpenJobPdf={openCompilePdf}
@@ -877,6 +948,27 @@ const PaperShow = () => {
           ) : null}
         </React.Fragment>
       )}
+
+      <CreateFileModal
+        destinationPath={uploadDestinationPath}
+        errorMessage={createFileErrorMessage}
+        folderPaths={folderPaths}
+        isCreating={isCreatingFile}
+        onClose={() => {
+          setShowCreateFileModal(false);
+          setCreateFileErrorMessage("");
+        }}
+        onCreate={createFile}
+        onDestinationPathChange={setUploadDestinationPath}
+        show={showCreateFileModal}
+      />
+
+      <LatexAssistantModal
+        onAuthError={handleAuthError}
+        onClose={() => setShowLatexAssistantModal(false)}
+        paperId={id}
+        show={showLatexAssistantModal}
+      />
 
       <DeleteModals
         deleteFolder={deleteFolder}

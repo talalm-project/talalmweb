@@ -34,6 +34,7 @@ const PaperWorkspace = ({
   onDownloadPdf,
   onFileSelection,
   onFolderSelection,
+  onOpenCreateFileModal,
   onOpenFilePicker,
   onOpenFolderPicker,
   onOpenJobPdf,
@@ -75,6 +76,7 @@ const PaperWorkspace = ({
               onDeleteFolder={onDeleteFolder}
               onFileSelection={onFileSelection}
               onFolderSelection={onFolderSelection}
+              onOpenCreateFileModal={onOpenCreateFileModal}
               onOpenFilePicker={onOpenFilePicker}
               onOpenFolderPicker={onOpenFolderPicker}
               onSelectFile={onSelectFile}

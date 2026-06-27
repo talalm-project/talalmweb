@@ -96,6 +96,12 @@ const PaperService = {
     });
   },
 
+  runLatexSupportInference(paperId, args) {
+    return axios.post(`${API_BASE_URL}/papers/${paperId}/latex_support_inference`, args, {
+      headers: buildHeaders()
+    });
+  },
+
   createPaper(args) {
     return axios.post(`${API_BASE_URL}/papers`, args, {
       headers: buildHeaders()
